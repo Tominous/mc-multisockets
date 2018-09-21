@@ -2,9 +2,14 @@ package fr.rhaz.minecraft
 
 import fr.rhaz.sockets.*
 import net.md_5.bungee.api.ProxyServer
+import net.md_5.bungee.config.Configuration
+import net.md_5.bungee.config.ConfigurationProvider
+import net.md_5.bungee.config.YamlConfiguration
 import org.bukkit.Bukkit
 import org.bukkit.event.HandlerList
 import java.io.File
+import java.io.IOException
+import java.nio.file.Files
 import java.util.logging.Logger
 import net.md_5.bungee.api.plugin.Event as BungeeEvent
 import net.md_5.bungee.api.plugin.Plugin as BungeePlugin
@@ -33,6 +38,16 @@ class Sockets4MC(){
         servertype = "Bungee"
         logger = plugin.logger
         dataFolder = plugin.dataFolder
+        val configfile = File(dataFolder, "config.yml")
+        val pconfig = plugin.load(configfile)
+        SocketClient(client, "Test", "localhost", 25598, "hello").apply {
+            config.buffer=100
+            config.timeout=2000
+        }
+        SocketServer(server, "Test", 25598, "hello").apply {
+            config.buffer=100
+            config.timeout=2000
+        }
         start()
     }
 
@@ -46,14 +61,7 @@ class Sockets4MC(){
 
     fun start() {
         logger.info("Successfully enabled Sockets4MC for $servertype")
-        SocketClient(client, "Test", "localhost", 25598, "hello").apply {
-            config.buffer=100
-            config.timeout=2000
-        }.start()
-        SocketServer(server, "Test", 25598, "hello").apply {
-            config.buffer=100
-            config.timeout=2000
-        }.start()
+
     }
 
     val server = object: SocketApp.Server(){
@@ -76,15 +84,42 @@ class Sockets4MC(){
         }
 
         override fun onConnect(mess: SocketMessenger){
-
+            when(servertype.lc) {
+                "bukkit" -> SocketEvent.Bukkit.Server.Connected().apply {
+                    messenger = mess
+                    Bukkit.getPluginManager().callEvent(this)
+                }
+                "bungee" -> SocketEvent.Bungee.Server.Connected().apply {
+                    messenger = mess
+                    ProxyServer.getInstance().pluginManager.callEvent(this)
+                }
+            }
         }
 
         override fun onHandshake(mess: SocketMessenger, name: String){
-
+            when(servertype.lc) {
+                "bukkit" -> SocketEvent.Bukkit.Server.Handshake().apply {
+                    messenger = mess
+                    Bukkit.getPluginManager().callEvent(this)
+                }
+                "bungee" -> SocketEvent.Bungee.Server.Handshake().apply {
+                    messenger = mess
+                    ProxyServer.getInstance().pluginManager.callEvent(this)
+                }
+            }
         }
 
         override fun onDisconnect(mess: SocketMessenger){
-
+            when(servertype.lc) {
+                "bukkit" -> SocketEvent.Bukkit.Server.Disconnected().apply {
+                    messenger = mess
+                    Bukkit.getPluginManager().callEvent(this)
+                }
+                "bungee" -> SocketEvent.Bungee.Server.Disconnected().apply {
+                    messenger = mess
+                    ProxyServer.getInstance().pluginManager.callEvent(this)
+                }
+            }
         }
     }
 
@@ -235,6 +270,14 @@ interface SocketEvent {
         }
     }
 }
+
+val BungeePlugin.provider get() = ConfigurationProvider.getProvider(YamlConfiguration::class.java)
+fun BungeePlugin.load(file: File) = try {
+    if (!dataFolder.exists()) dataFolder.mkdir()
+    if (!file.exists()) Files.copy(getResourceAsStream(file.name), file.toPath())
+    provider.load(file)
+} catch (e: IOException){ e.printStackTrace(); null }
+fun BungeePlugin.save(config: Configuration, file: File) = provider.save(config, file)
 
 
 val String.lc get() = toLowerCase()
