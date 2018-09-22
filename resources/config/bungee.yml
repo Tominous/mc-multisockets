@@ -6,6 +6,9 @@ default:
   password: "mypassword"
   # --- Extra options ---
   #
+  # enabled: false
+  # if you want to disable this socket
+  #
   # security: "aes"
   # can be [none, aes, rsa]
   #

@@ -56,7 +56,7 @@ class BungeeTest: BungeePlugin(){
                         // Only use our channel
                         // Other channels will be ignored
 
-                        val name = e.message.getExtra<String>("name")
+                        val name = e.messenger.target.name
                         // Get the name of the client
 
                         if(name != "Bob") return;
@@ -117,7 +117,7 @@ class BungeeTest: BungeePlugin(){
                         if(e.client != bob) return
                         if(e.channel != "Test") return
 
-                        val name = e.message.getExtra<String>("name")
+                        val name = e.client.target.name
                         // Get the name of the server
 
                         if(name != "Alice") return;

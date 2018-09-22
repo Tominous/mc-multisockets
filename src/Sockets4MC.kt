@@ -70,7 +70,9 @@ class Sockets4MC {
             debug = getBoolean("debug", false)
             for(key in keys) {
                 if(key == "debug") continue
-                getSection(key).apply {
+                getSection(key).apply section@{
+                    val enabled = getBoolean("enabled", true)
+                    if(!enabled) return@section
                     val name = getString("name", "MyProxy")
                     val port = getInt("port", 25598)
                     val password = getString("password", "mypassword")
@@ -118,7 +120,9 @@ class Sockets4MC {
             debug = getBoolean("debug", false)
             for (key in getKeys(false)) {
                 if(key == "debug") continue
-                getConfigurationSection(key).apply {
+                getConfigurationSection(key).apply section@{
+                    val enabled = getBoolean("enabled", true)
+                    if(!enabled) return@section
                     val name = getString("name", "MyBukkit")
                     val port = getInt("port", 25598)
                     val password = getString("password", "mypassword")
