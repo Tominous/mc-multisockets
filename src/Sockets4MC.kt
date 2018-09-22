@@ -4,8 +4,9 @@ import fr.rhaz.sockets.*
 import net.md_5.bungee.api.ProxyServer
 import net.md_5.bungee.config.Configuration
 import net.md_5.bungee.config.ConfigurationProvider
-import net.md_5.bungee.config.YamlConfiguration
+import net.md_5.bungee.config.YamlConfiguration as BungeeYaml
 import org.bukkit.Bukkit
+import org.bukkit.configuration.file.YamlConfiguration
 import org.bukkit.event.HandlerList
 import java.io.File
 import java.io.IOException
@@ -20,54 +21,129 @@ import org.spongepowered.api.plugin.Plugin as SpongePlugin
 open class Sockets4Bukkit: BukkitPlugin() {
     val sockets = Sockets4MC()
     override fun onEnable() = sockets.bukkit(this)
+    override fun onDisable() = sockets.disable()
 }
 
 open class Sockets4Bungee: BungeePlugin() {
     val sockets = Sockets4MC()
     override fun onEnable() = sockets.bungee(this)
+    override fun onDisable() = sockets.disable()
 }
 
 class Sockets4MC(){
     lateinit var plugin: Any
-    lateinit var servertype: String
-    lateinit var logger: Logger
-    lateinit var dataFolder: File
+    lateinit var environment: String
+    var logger: Logger = Logger.getGlobal()
+    var dataFolder = File(".")
+    var debug = false
+
+    val sockets = mutableMapOf<String, Any>()
+    fun disable() = sockets.values.forEach {
+        when(it){
+            is SocketClient -> it.interrupt()
+            is SocketServer -> it.close()
+        }
+        sockets.clear()
+    }
 
     fun bungee(plugin: Sockets4Bungee){
         this.plugin = plugin
-        servertype = "Bungee"
+        environment = "bungee"
         logger = plugin.logger
         dataFolder = plugin.dataFolder
-        val configfile = File(dataFolder, "config.yml")
-        val pconfig = plugin.load(configfile)
-        SocketClient(client, "Test", "localhost", 25598, "hello").apply {
-            config.buffer=100
-            config.timeout=2000
-        }
-        SocketServer(server, "Test", 25598, "hello").apply {
-            config.buffer=100
-            config.timeout=2000
-        }
-        start()
+        val file = File(dataFolder, "config.yml")
+        plugin.load(file)?.apply {
+            debug = getBoolean("debug", false)
+            for(key in keys) {
+                if(key == "debug") continue
+                getSection(key).apply {
+                    val name = getString("name", "MyProxy")
+                    val port = getInt("port", 25598)
+                    val password = getString("password", "mypassword")
+                    logger.info("Starting $name ($key)...")
+                    when(getString("type", "server").lc){
+                        "server" -> SocketServer(server, name, port, password).apply {
+                            config.buffer = getInt("buffer", 100)
+                            config.timeout = getLong("timeout", 1000)
+                            config.security = when(getString("security", "aes")){
+                                "none" -> 0; "aes" -> 1; "rsa" -> 2
+                                else -> logger.info(
+                                    "Unknown security for $name." +
+                                    "Accepted: none, aes, rsa"
+                                ).let{1}
+                            }
+                            sockets[key] = this
+                            start()
+                            logger.info("Successfully started server $name (#$key)")
+                        }
+                        "client" -> {
+                            val host = getString("host", "localhost").lc
+                            SocketClient(client, name, host, port, password).apply {
+                                config.buffer = getInt("buffer", 100)
+                                config.timeout = getLong("timeout", 1000)
+                                sockets[key] = this
+                                start()
+                                logger.info("Successfully started client $name (#$key)")
+                            }
+                        }
+                    }
+                }
+            }
+            logger.info("Successfully enabled Sockets4MC")
+        } ?: logger.warning("Could not load configuration")
     }
 
     fun bukkit(plugin: Sockets4Bukkit){
         this.plugin = plugin
-        servertype = "Bukkit"
+        environment = "bukkit"
         logger = plugin.logger
         dataFolder = plugin.dataFolder
-        start()
-    }
-
-    fun start() {
-        logger.info("Successfully enabled Sockets4MC for $servertype")
-
+        val file = File(dataFolder, "config.yml")
+        plugin.load(file)?.apply {
+            debug = getBoolean("debug", false)
+            for (key in getKeys(false)) {
+                if(key == "debug") continue
+                getConfigurationSection(key).apply {
+                    val name = getString("name", "MyBukkit")
+                    val port = getInt("port", 25598)
+                    val password = getString("password", "mypassword")
+                    logger.info("Starting $name ($key)...")
+                    when(getString("type", "server").lc){
+                        "server" -> SocketServer(server, name, port, password).apply {
+                            config.buffer = getInt("buffer", 100)
+                            config.timeout = getLong("timeout", 1000)
+                            config.security = when(getString("security", "aes")){
+                                "none" -> 0; "aes" -> 1; "rsa" -> 2
+                                else -> logger.info(
+                                    "Unknown security for $name." +
+                                    "Accepted: none, aes, rsa"
+                                ).let{1}
+                            }
+                            sockets[key] = this
+                            start()
+                            logger.info("Successfully started server $name (#$key)")
+                        }
+                        "client" -> {
+                            val host = getString("host", "localhost").lc
+                            SocketClient(client, name, host, port, password).apply {
+                                config.buffer = getInt("buffer", 100)
+                                config.timeout = getLong("timeout", 1000)
+                                sockets[key] = this
+                                start()
+                                logger.info("Successfully started client $name (#$key)")
+                            }
+                        }
+                    }
+                }
+            }
+            logger.info("Successfully enabled Sockets4MC")
+        } ?: logger.warning("Could not load configuration")
     }
 
     val server = object: SocketApp.Server(){
         override fun log(err: String) = logger.info(err)
         override fun onMessage(mess: SocketMessenger, map: JSONMap) {
-            when(servertype.lc) {
+            when(environment.lc) {
                 "bukkit" -> SocketEvent.Bukkit.Server.Message().apply {
                     messenger = mess
                     message = map
@@ -84,7 +160,7 @@ class Sockets4MC(){
         }
 
         override fun onConnect(mess: SocketMessenger){
-            when(servertype.lc) {
+            when(environment.lc) {
                 "bukkit" -> SocketEvent.Bukkit.Server.Connected().apply {
                     messenger = mess
                     Bukkit.getPluginManager().callEvent(this)
@@ -97,7 +173,7 @@ class Sockets4MC(){
         }
 
         override fun onHandshake(mess: SocketMessenger, name: String){
-            when(servertype.lc) {
+            when(environment.lc) {
                 "bukkit" -> SocketEvent.Bukkit.Server.Handshake().apply {
                     messenger = mess
                     Bukkit.getPluginManager().callEvent(this)
@@ -110,7 +186,7 @@ class Sockets4MC(){
         }
 
         override fun onDisconnect(mess: SocketMessenger){
-            when(servertype.lc) {
+            when(environment.lc) {
                 "bukkit" -> SocketEvent.Bukkit.Server.Disconnected().apply {
                     messenger = mess
                     Bukkit.getPluginManager().callEvent(this)
@@ -126,7 +202,7 @@ class Sockets4MC(){
     val client = object: SocketApp.Client(){
         override fun log(err: String) = logger.info(err)
         override fun onMessage(client: SocketClient, map: JSONMap) {
-            when(servertype.lc) {
+            when(environment.lc) {
                 "bukkit" -> SocketEvent.Bukkit.Client.Message().apply {
                     this.client = client
                     message = map
@@ -143,7 +219,7 @@ class Sockets4MC(){
         }
 
         override fun onConnect(client: SocketClient){
-            when(servertype.lc) {
+            when(environment.lc) {
                 "bukkit" -> SocketEvent.Bukkit.Client.Connected().apply {
                     this.client = client
                     Bukkit.getPluginManager().callEvent(this)
@@ -156,7 +232,7 @@ class Sockets4MC(){
         }
 
         override fun onHandshake(client: SocketClient){
-            when(servertype.lc) {
+            when(environment.lc) {
                 "bukkit" -> SocketEvent.Bukkit.Client.Handshake().apply {
                     this.client = client
                     Bukkit.getPluginManager().callEvent(this)
@@ -169,7 +245,7 @@ class Sockets4MC(){
         }
 
         override fun onDisconnect(client: SocketClient){
-            when(servertype.lc) {
+            when(environment.lc) {
                 "bukkit" -> SocketEvent.Bukkit.Client.Disconnected().apply {
                     this.client = client
                     Bukkit.getPluginManager().callEvent(this)
@@ -271,13 +347,20 @@ interface SocketEvent {
     }
 }
 
-val BungeePlugin.provider get() = ConfigurationProvider.getProvider(YamlConfiguration::class.java)
+val BungeePlugin.provider get() = ConfigurationProvider.getProvider(BungeeYaml::class.java)
 fun BungeePlugin.load(file: File) = try {
     if (!dataFolder.exists()) dataFolder.mkdir()
-    if (!file.exists()) Files.copy(getResourceAsStream(file.name), file.toPath())
+    val res = file.nameWithoutExtension+"/bungee.yml"
+    if (!file.exists()) Files.copy(getResourceAsStream(res), file.toPath())
     provider.load(file)
 } catch (e: IOException){ e.printStackTrace(); null }
 fun BungeePlugin.save(config: Configuration, file: File) = provider.save(config, file)
 
+fun BukkitPlugin.load(file: File): YamlConfiguration? {
+    if (!file.parentFile.exists()) file.parentFile.mkdir()
+    val res = file.nameWithoutExtension+"/bukkit.yml"
+    if (!file.exists()) Files.copy(getResource(res), file.toPath())
+    return YamlConfiguration.loadConfiguration(file) ?: null;
+}
 
 val String.lc get() = toLowerCase()

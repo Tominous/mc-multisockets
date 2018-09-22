@@ -1,0 +1,14 @@
+debug: false
+default:
+  type: client
+  name: "MyBukkit"
+  host: "localhost"
+  port: 25595
+  password: "mypassword"
+  # --- Extra options ---
+  #
+  # buffer: 100
+  # max length of a line
+  #
+  # timeout: 1000
+  # delay between each message sending/reading

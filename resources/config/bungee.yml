@@ -1,0 +1,16 @@
+debug: false
+default:
+  type: server
+  name: "MyProxy"
+  port: 25595
+  password: "mypassword"
+  # --- Extra options ---
+  #
+  # security: "aes"
+  # can be [none, aes, rsa]
+  #
+  # buffer: 100
+  # max length of a line
+  #
+  # timeout: 1000
+  # delay between each message sending/reading
