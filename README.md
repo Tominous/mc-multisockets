@@ -3,6 +3,9 @@
 </h3>
 <br>
 
+[![](https://i.imgur.com/3bVmcOF.png)](https://www.spigotmc.org/resources/sockets4mc-no-more-plugin-messaging-channels.15938/)
+---
+
 #### Tired of Plugin Messaging Channels?
 This API simply allows developers to send any data from a server to another
 
