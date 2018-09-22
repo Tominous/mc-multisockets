@@ -1,5 +1,5 @@
 <h3 align=center>
-    <img src="https://i.imgur.com/Lq2EBx1.png"/><br>
+    <img src="https://i.imgur.com/FwZRaEn.png"/><br>
 </h3>
 <br>
 
