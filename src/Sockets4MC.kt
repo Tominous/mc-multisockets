@@ -156,7 +156,7 @@ class Sockets4MC {
     }
 
     val server = object: SocketApp.Server(){
-        override fun log(err: String) = logger.info(err)
+        override fun log(err: String) = if(debug) logger.info(err) else Unit
         override fun onMessage(mess: SocketMessenger, map: JSONMap) {
             when(environment.lc) {
                 "bukkit" -> SocketEvent.Bukkit.Server.Message().apply {
@@ -215,7 +215,7 @@ class Sockets4MC {
     }
 
     val client = object: SocketApp.Client(){
-        override fun log(err: String) = logger.info(err)
+        override fun log(err: String) = if(debug) logger.info(err) else Unit
         override fun onMessage(client: SocketClient, map: JSONMap) {
             when(environment.lc) {
                 "bukkit" -> SocketEvent.Bukkit.Client.Message().apply {
