@@ -17,6 +17,7 @@ import org.bukkit.plugin.java.JavaPlugin as BukkitPlugin
 
 // *** Example for BungeeCord plugin ***
 // Let's call our server Alice and our client Bob
+//
 class BungeeTest: BungeePlugin(){
 
     override fun onEnable() {
