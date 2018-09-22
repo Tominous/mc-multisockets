@@ -34,7 +34,7 @@ This API simply allows developers to send any data from a server to another
       }
 
       dependencies {
-          compileOnly("fr.rhaz.minecraft:sockets4mc:4.0")
+          compileOnly("fr.rhaz.minecraft:sockets4mc:4.0.1")
       }
 
 - Gradle: add this to your build.gradle
@@ -44,7 +44,7 @@ This API simply allows developers to send any data from a server to another
       }
 
       dependencies {
-          compileOnly 'fr.rhaz.minecraft:sockets4mc:4.0'
+          compileOnly 'fr.rhaz.minecraft:sockets4mc:4.0.1'
       }
 
 
@@ -61,7 +61,7 @@ This API simply allows developers to send any data from a server to another
         <dependency>
             <groupId>fr.rhaz.minecraft</groupId>
             <artifactId>sockets4mc</artifactId>
-            <version>4.0</version>
+            <version>4.0.1</version>
             <scope>provided</scope>
         </dependency>
       </dependencies>
