@@ -3,6 +3,9 @@
 </h3>
 <br>
 
+#### Tired of Plugin Messaging Channels?
+This API simply allows developers to send any data from a server to another
+
 ### Short example
 
     // Server-side
