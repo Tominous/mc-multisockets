@@ -21,9 +21,9 @@ This API simply allows developers to send any data from a server to another
 
 ### Use it
 
-- Example in Kotlin
+- [Example in Kotlin](https://github.com/RHazDev/Sockets4MC/blob/master/test/KotlinTest.kt)
 
-- Example in Java
+- [Example in Java](https://github.com/RHazDev/Sockets4MC/blob/master/test/JavaTest.java)
 
 ### Implement it
 
