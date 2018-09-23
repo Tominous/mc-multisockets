@@ -9,7 +9,7 @@
 ---
 
 #### Tired of Plugin Messaging Channels?
-This API simply allows developers to send any data from a server to another
+This API simply allows developers to send any data from a server to another, including BungeeCords
 
 ### Short example
 
