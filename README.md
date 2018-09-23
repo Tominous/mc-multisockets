@@ -7,11 +7,12 @@
 
 [![](https://www.paypalobjects.com/en_US/i/btn/btn_donate_LG.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=M7ZT66G6N56SS)
 
-[Go to RHazSockets](https://github.com/RHazDev/RHazSockets)
 ---
 
 #### Tired of Plugin Messaging Channels?
 This API simply allows developers to send any data from a server to another, including BungeeCords
+
+This plugin uses [RHazSockets](https://github.com/RHazDev/RHazSockets)
 
 ### Short example
 
@@ -21,7 +22,7 @@ This API simply allows developers to send any data from a server to another, inc
 
         onMessage(plugin, "MyChannel"){
             val answer = it.getExtra<String>("data")
-            logger.info("The answer of life is $answer")
+            logger.info("The answer to life is $answer")
         }
     }
 
