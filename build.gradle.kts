@@ -12,7 +12,7 @@ plugins {
 }
 
 group = "fr.rhaz.sockets"
-version = "4.0.1"
+version = "4.0.2"
 val pname = "Sockets4MC"
 val desc = "No more Plugin Messaging Channels"
 
@@ -26,10 +26,9 @@ repositories {
 
 dependencies {
     compileOnly(kotlin("stdlib-jdk8"))
-    compileOnly("net.md-5:bungeecord-api:1.12-SNAPSHOT")
+    compileOnly("net.md-5:bungeecord-api:1.13-SNAPSHOT")
     compileOnly("org.spigotmc:spigot-api:1.12.2-R0.1-SNAPSHOT")
-    compileOnly("org.spongepowered:spongeapi:7.0.0")
-    compile("fr.rhaz:sockets:3.0.1")
+    compile("fr.rhaz:sockets:3.0.2")
 }
 
 (tasks.getByName("processResources") as ProcessResources).apply {

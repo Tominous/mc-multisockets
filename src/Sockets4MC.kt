@@ -1,24 +1,20 @@
 package fr.rhaz.minecraft
 
+import TriConsumer
 import com.google.gson.JsonParser
 import fr.rhaz.sockets.*
 import net.md_5.bungee.api.ChatColor
-import net.md_5.bungee.api.ChatColor.*
+import net.md_5.bungee.api.ChatColor.LIGHT_PURPLE
 import net.md_5.bungee.api.CommandSender
 import net.md_5.bungee.api.ProxyServer
 import net.md_5.bungee.api.chat.ClickEvent
 import net.md_5.bungee.api.chat.TextComponent
 import net.md_5.bungee.api.event.PostLoginEvent
-import net.md_5.bungee.api.plugin.Listener as BungeeListener
 import net.md_5.bungee.config.Configuration
 import net.md_5.bungee.config.ConfigurationProvider
-import net.md_5.bungee.event.EventHandler as BungeeEventHandler
-import net.md_5.bungee.config.YamlConfiguration as BungeeYaml
 import org.bukkit.Bukkit
 import org.bukkit.configuration.file.YamlConfiguration
-import org.bukkit.event.EventHandler as BukkitEventHandler
 import org.bukkit.event.HandlerList
-import org.bukkit.event.Listener as BukkitListener
 import org.bukkit.event.player.PlayerJoinEvent
 import java.io.File
 import java.io.IOException
@@ -26,23 +22,30 @@ import java.io.InputStreamReader
 import java.net.URL
 import java.nio.file.Files
 import java.util.concurrent.TimeUnit
+import java.util.function.BiConsumer
+import java.util.function.Consumer
 import java.util.logging.Logger
 import net.md_5.bungee.api.plugin.Event as BungeeEvent
+import net.md_5.bungee.api.plugin.Listener as BungeeListener
 import net.md_5.bungee.api.plugin.Plugin as BungeePlugin
+import net.md_5.bungee.config.YamlConfiguration as BungeeYaml
+import net.md_5.bungee.event.EventHandler as BungeeEventHandler
 import org.bukkit.event.Event as BukkitEvent
+import org.bukkit.event.EventHandler as BukkitEventHandler
+import org.bukkit.event.Listener as BukkitListener
 import org.bukkit.plugin.java.JavaPlugin as BukkitPlugin
 
 open class Sockets4Bukkit: BukkitPlugin() {
-    override fun onEnable() = sockets.bukkit(this)
-    override fun onDisable() = sockets.disable()
+    override fun onEnable() = minecraftSockets.bukkit(this)
+    override fun onDisable() = minecraftSockets.disable()
 }
 
 open class Sockets4Bungee: BungeePlugin() {
-    override fun onEnable() = sockets.bungee(this)
-    override fun onDisable() = sockets.disable()
+    override fun onEnable() = minecraftSockets.bungee(this)
+    override fun onDisable() = minecraftSockets.disable()
 }
 
-val sockets = Sockets4MC()
+val minecraftSockets = Sockets4MC()
 class Sockets4MC {
     lateinit var plugin: Any
     lateinit var environment: String
@@ -50,7 +53,7 @@ class Sockets4MC {
     var dataFolder = File(".")
     var debug = false
 
-    val sockets = mutableMapOf<String, Any>()
+    val sockets = mutableMapOf<String, SocketHandler>()
     fun disable() = sockets.values.forEach {
         when(it){
             is SocketClient -> it.interrupt()
@@ -366,6 +369,254 @@ interface SocketEvent {
     }
 }
 
+fun SocketClient.onMessage(plugin: BungeePlugin, listener: SocketClient.(String, JSONMap) -> Unit): BungeeListener{
+    val socket = this;
+    return object:BungeeListener{
+        @BungeeEventHandler
+        fun onMessage(e: SocketEvent.Bungee.Client.Message){
+            if(e.client != socket) return
+            listener(e.channel, e.message)
+        }
+    }.also { plugin.proxy.pluginManager.registerListener(plugin, it) }
+}
+
+fun SocketClient.onMessage(plugin: BungeePlugin, channel: String, listener: SocketClient.(JSONMap) -> Unit): BungeeListener{
+    val socket = this;
+    return object:BungeeListener{
+        @BungeeEventHandler
+        fun onMessage(e: SocketEvent.Bungee.Client.Message){
+            if(e.client != socket) return
+            if(e.channel != channel) return
+            listener(e.message)
+        }
+    }.also { plugin.proxy.pluginManager.registerListener(plugin, it) }
+}
+
+fun SocketClient.onHandshake(plugin: BungeePlugin, listener: SocketClient.() -> Unit): BungeeListener{
+    val socket = this;
+    return object:BungeeListener{
+        @BungeeEventHandler
+        fun onHandshake(e: SocketEvent.Bungee.Client.Handshake){
+            if(e.client != socket) return
+            listener()
+        }
+    }.also { plugin.proxy.pluginManager.registerListener(plugin, it) }
+}
+
+fun SocketClient.onConnect(plugin: BungeePlugin, listener: SocketClient.() -> Unit): BungeeListener{
+    val socket = this;
+    return object:BungeeListener{
+        @BungeeEventHandler
+        fun onConnect(e: SocketEvent.Bungee.Client.Connected){
+            if(e.client != socket) return
+            listener()
+        }
+    }.also { plugin.proxy.pluginManager.registerListener(plugin, it) }
+}
+
+fun SocketClient.onDisconnect(plugin: BungeePlugin, listener: SocketClient.() -> Unit){
+    val socket = this;
+    plugin.proxy.pluginManager.registerListener(plugin, object:BungeeListener{
+        @BungeeEventHandler
+        fun onDisconnect(e: SocketEvent.Bungee.Client.Disconnected){
+            if(e.client != socket) return
+            listener()
+        }
+    })
+}
+
+fun SocketClient.onMessage(plugin: BukkitPlugin, listener: SocketClient.(String, JSONMap) -> Unit){
+    val socket = this
+    plugin.server.pluginManager.registerEvents(object: BukkitListener{
+        @BukkitEventHandler
+        fun onMessage(e: SocketEvent.Bukkit.Client.Message){
+            if(e.client != socket) return;
+            listener(e.channel, e.message)
+        }
+    }, plugin)
+}
+
+fun SocketClient.onMessage(plugin: BukkitPlugin, channel: String, listener: SocketClient.(JSONMap) -> Unit){
+    val socket = this
+    plugin.server.pluginManager.registerEvents(object: BukkitListener{
+        @BukkitEventHandler
+        fun onMessage(e: SocketEvent.Bukkit.Client.Message){
+            if(e.client != socket) return
+            if(e.channel != channel) return
+            listener(e.message)
+        }
+    }, plugin)
+}
+
+fun SocketClient.onHandshake(plugin: BukkitPlugin, listener: SocketClient.() -> Unit){
+    val socket = this
+    plugin.server.pluginManager.registerEvents(object: BukkitListener{
+        @BukkitEventHandler
+        fun onHandshake(e: SocketEvent.Bukkit.Client.Handshake){
+            if(e.client != socket) return;
+            listener()
+        }
+    }, plugin)
+}
+
+fun SocketClient.onConnect(plugin: BukkitPlugin, listener: SocketClient.() -> Unit){
+    val socket = this
+    plugin.server.pluginManager.registerEvents(object: BukkitListener{
+        @BukkitEventHandler
+        fun onConnect(e: SocketEvent.Bukkit.Client.Connected){
+            if(e.client != socket) return;
+            listener()
+        }
+    }, plugin)
+}
+
+fun SocketClient.onDisconnect(plugin: BukkitPlugin, listener: SocketClient.() -> Unit){
+    val socket = this
+    plugin.server.pluginManager.registerEvents(object: BukkitListener{
+        @BukkitEventHandler
+        fun onDisconnect(e: SocketEvent.Bukkit.Client.Disconnected){
+            if(e.client != socket) return;
+            listener()
+        }
+    }, plugin)
+}
+
+fun SocketServer.onHandshake(plugin: BukkitPlugin, listener: SocketMessenger.(String) -> Unit){
+    val socket = this
+    plugin.server.pluginManager.registerEvents(object: BukkitListener{
+        @BukkitEventHandler
+        fun onHandshake(e: SocketEvent.Bukkit.Server.Handshake){
+            if(e.messenger.server != socket) return
+            listener(e.messenger, e.messenger.target.name)
+        }
+    }, plugin)
+}
+
+fun SocketServer.onHandshake(plugin: BukkitPlugin, name: String, listener: SocketMessenger.() -> Unit){
+    val socket = this
+    plugin.server.pluginManager.registerEvents(object: BukkitListener{
+        @BukkitEventHandler
+        fun onHandshake(e: SocketEvent.Bukkit.Server.Handshake){
+            if(e.messenger.server != socket) return
+            if(e.messenger.target.name != name) return
+            listener(e.messenger)
+        }
+    }, plugin)
+}
+
+fun SocketServer.onConnect(plugin: BukkitPlugin, listener: SocketMessenger.() -> Unit){
+    val socket = this
+    plugin.server.pluginManager.registerEvents(object: BukkitListener{
+        @BukkitEventHandler
+        fun onConnect(e: SocketEvent.Bukkit.Server.Connected){
+            if(e.messenger.server != socket) return
+            listener(e.messenger)
+        }
+    }, plugin)
+}
+
+fun SocketServer.onDisconnect(plugin: BukkitPlugin, listener: SocketMessenger.(String) -> Unit){
+    val socket = this
+    plugin.server.pluginManager.registerEvents(object: BukkitListener{
+        @BukkitEventHandler
+        fun onDisconnect(e: SocketEvent.Bukkit.Server.Disconnected){
+            if(e.messenger.server != socket) return
+            listener(e.messenger, e.messenger.target.name)
+        }
+    }, plugin)
+}
+
+fun SocketMessenger.onMessage(plugin: BukkitPlugin, listener: SocketMessenger.(String, JSONMap) -> Unit): BukkitListener {
+    val mess = this
+    return object: BukkitListener{
+        @BukkitEventHandler
+        fun onMessage(e: SocketEvent.Bukkit.Server.Message){
+            if(e.messenger != mess) return
+            listener(e.messenger, e.channel, e.message)
+        }
+    }.also { plugin.server.pluginManager.registerEvents(it, plugin) }
+}
+
+fun SocketMessenger.onMessage(plugin: BukkitPlugin, channel: String, listener: SocketMessenger.(JSONMap) -> Unit): BukkitListener {
+    val mess = this
+    return object: BukkitListener{
+        @BukkitEventHandler
+        fun onMessage(e: SocketEvent.Bukkit.Server.Message){
+            if(e.messenger != mess) return
+            if(e.channel != channel) return
+            listener(e.messenger, e.message)
+        }
+    }.also { plugin.server.pluginManager.registerEvents(it, plugin) }
+}
+
+fun SocketServer.onHandshake(plugin: BungeePlugin, name: String, listener: SocketMessenger.() -> Unit): BungeeListener {
+    val socket = this
+    return object: BungeeListener{
+        @BungeeEventHandler
+        fun onHandshake(e: SocketEvent.Bungee.Server.Handshake){
+            if(e.messenger.server != socket) return;
+            if(e.messenger.target.name != name) return
+            listener(e.messenger)
+        }
+    }.also { plugin.proxy.pluginManager.registerListener(plugin, it) }
+}
+
+fun SocketServer.onHandshake(plugin: BungeePlugin, listener: SocketMessenger.(String) -> Unit){
+    val socket = this
+    plugin.proxy.pluginManager.registerListener(plugin, object: BungeeListener{
+        @BungeeEventHandler
+        fun onHandshake(e: SocketEvent.Bungee.Server.Handshake){
+            if(e.messenger.server != socket) return;
+            listener(e.messenger, e.messenger.target.name)
+        }
+    })
+}
+
+fun SocketServer.onConnect(plugin: BungeePlugin, listener: SocketMessenger.() -> Unit){
+    val socket = this
+    plugin.proxy.pluginManager.registerListener(plugin, object: BungeeListener{
+        @BungeeEventHandler
+        fun onConnect(e: SocketEvent.Bungee.Server.Connected){
+            if(e.messenger.server != socket) return;
+            listener(e.messenger)
+        }
+    })
+}
+
+fun SocketServer.onDisconnect(plugin: BungeePlugin, listener: SocketMessenger.(String) -> Unit){
+    val socket = this
+    plugin.proxy.pluginManager.registerListener(plugin, object: BungeeListener{
+        @BungeeEventHandler
+        fun onDisconnect(e: SocketEvent.Bungee.Server.Disconnected){
+            if(e.messenger.server != socket) return;
+            listener(e.messenger, e.messenger.target.name)
+        }
+    })
+}
+
+fun SocketMessenger.onMessage(plugin: BungeePlugin, listener: SocketMessenger.(String, JSONMap) -> Unit){
+    val mess = this
+    plugin.proxy.pluginManager.registerListener(plugin, object: BungeeListener{
+        @BungeeEventHandler
+        fun onMessage(e: SocketEvent.Bungee.Server.Message){
+            if(e.messenger != mess) return
+            listener(e.messenger, e.channel, e.message)
+        }
+    })
+}
+
+fun SocketMessenger.onMessage(plugin: BungeePlugin, channel: String, listener: SocketMessenger.(JSONMap) -> Unit){
+    val mess = this
+    plugin.proxy.pluginManager.registerListener(plugin, object: BungeeListener{
+        @BungeeEventHandler
+        fun onMessage(e: SocketEvent.Bungee.Server.Message){
+            if(e.messenger != mess) return
+            if(e.channel != channel) return
+            listener(e.messenger, e.message)
+        }
+    })
+}
+
 val BungeePlugin.provider get() = ConfigurationProvider.getProvider(BungeeYaml::class.java)
 fun BungeePlugin.load(file: File) = try {
     if (!dataFolder.exists()) dataFolder.mkdir()
@@ -451,5 +702,11 @@ fun BungeePlugin.update(id: Int, color: ChatColor) {
         }
     })
 }
+
+val unit = Unit
+
+fun <T> listener(callable: Consumer<T>): Function1<T, Unit> = { t -> callable.accept(t); Unit }
+fun <T,U> listener(callable: BiConsumer<T, U>): Function2<T, U, Unit> = { t, u -> callable.accept(t, u); Unit }
+fun <T,U,V> listener(callable: TriConsumer<T, U, V>): Function3<T, U, V, Unit> = { t, u, v -> callable.accept(t, u, v); Unit }
 
 val String.lc get() = toLowerCase()

@@ -1,5 +1,4 @@
-import fr.rhaz.minecraft.SocketEvent
-import fr.rhaz.minecraft.sockets
+import fr.rhaz.minecraft.*
 import fr.rhaz.sockets.JSONMap
 import fr.rhaz.sockets.SocketClient
 import fr.rhaz.sockets.SocketMessenger
@@ -22,7 +21,7 @@ class BungeeTest: BungeePlugin(){
 
     override fun onEnable() {
 
-        val default = sockets.sockets["default"]
+        val default = minecraftSockets.sockets["default"]
         // Get the default socket in the S4MC configuration
         // There can be multiple sockets used within the same environment (Bukkit, Bungee)
 
@@ -37,11 +36,60 @@ class BungeeTest: BungeePlugin(){
                 // Here, the default socket is a server, so let's call it Alice
                 val alice = default
 
-                // Bob will only be initialized if Bob has already sent a "Hello world!" message
+                // bob is the Bob's messenger, we can use it to write to Bob
+                // it is not initialized yet (lateinit)
                 lateinit var bob: SocketMessenger
 
+                // We listen for incoming connections from Bob
+                alice.onHandshake(plugin = this, name = "Bob"){
+
+                    // --- In this context ---
+                    // this = Bob's messenger
+
+                    // We save Bob's messenger in order to send him messages later
+                    bob = this
+
+                    // We listen for incoming messages from Bob over the channel "Test"
+                    onMessage(plugin = this@BungeeTest, channel = "Test"){
+
+                        // --- In this context ---
+                        // this = Bob's messenger
+                        // it = Bob's message
+
+                        // Get the message from the "data" extra
+                        val data = it.getExtra<String>("data")
+                        if(data == "How are you?")
+                            write("Test", "It works!")
+                    }
+
+                    write("Test", "Hello world!")
+                    // Send him a message
+
+                    // You can also send complex objects such as infos about a player
+                    fun sendPlayerInfo(player: ProxiedPlayer){
+
+                        // Ensure the connection is ready
+                        if(!bob.run{ready && handshaked}) return
+
+                        // This message will be sent over the channel "PlayerInfo"
+                        bob.write("PlayerInfo", mapOf(
+                            "displayname" to player.displayName,
+                            // You'll need to do getExtra<String>("displayName")
+                            "ping" to player.ping,
+                            // You'll need to do getExtra<Int>("ping")
+                            "uuid" to player.uniqueId.toString()
+                            // It is preferred to use primitives instead of whole objects
+                            // So we convert it to the String primitive,
+                            // then we will convert it back to an UUID
+                            // You'll need to do getExtra<String>("uuid").let{UUID.fromString(it)}
+                        ).let{JSONMap(it)})
+                    }
+                }
+
+                // ----------- DEPRECATED -------------
+                // You can also use events, but it is more verbose
                 // We register an event for incoming messages from clients
-                proxy.pluginManager.registerListener(this, object:BungeeListener{
+                /*proxy.pluginManager.registerListener(this, */object:BungeeListener{
                     // The events are very simple to use
                     // They follow the syntax SocketEvent.environment.side.type
                     // Your IDE shows you all possible events when you start typing SocketEvent
@@ -78,17 +126,8 @@ class BungeeTest: BungeePlugin(){
                         // Let's save this messenger as Bob in order to send messages later
                         bob = e.messenger
                     }
+                }/*)*/
 
-                    // You can also send complex objects such as infos about a player
-                    // It will only work if Bob has already been saved
-                    fun sendPlayerInfo(player: ProxiedPlayer){
-                        bob.write("PlayerInfo", JSONMap(
-                            "displayName", player.displayName, // You'll need to do getExtra<String>("displayName")
-                            "uuid", player.uniqueId.toString(), // You'll need to do getExtra<String>("uuid").let{UUID.fromString(it)}
-                            "ping", player.ping // You'll need to do getExtra<Int>("ping")
-                        ))
-                    }
-                })
             }
 
             // If the default socket is a client
@@ -97,6 +136,16 @@ class BungeeTest: BungeePlugin(){
                 // Here, we are in the context of Bob sending messages to Alice
                 // Bob is our default socket
                 val bob = default
+
+                // Listen for incoming messages over the channel "Test"
+                bob.onMessage(this, "Test"){
+                    val data = it.getExtra<String>("data")
+                    if(data == "Hello world!")
+                        write("Test", "How are you?")
+
+                    if(data == "It works!")
+                        logger.info("Yay! It works!")
+                }
 
                 proxy.pluginManager.registerListener(this, object:BungeeListener{
                     // Here, we will wait for the connection to be successfull in order to start the conversation
@@ -122,7 +171,7 @@ class BungeeTest: BungeePlugin(){
                         // Get the name of the server
 
                         if(name != "Alice") return;
-                        // We only want to process messages sent by Bob
+                        // We only want to process messages sent by Alice
                         // Other names will be ignored
 
                         val data = e.message.getExtra<String>("data")

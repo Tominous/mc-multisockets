@@ -14,10 +14,22 @@ This API simply allows developers to send any data from a server to another
 ### Short example
 
     // Server-side
-    mess.write("MyChannel", "What is the answer to life?")
+    socket.onHandshake(this){
+        write("MyChannel", "What is the answer to life?")
+
+        onMessage(this, "MyChannel"){
+            val answer = it.getExtra<String>("data")
+            logger.info("The answer of life is $answer")
+        }
+    }
 
     // Client-side
-    client.write("MyChannel", "42")
+    socket.onMessage(this, "MyChannel"){
+        val data = it.getExtra<String>("data")
+        if(data == "What is the answer to life?")
+            write("MyChannel", "42")
+    }
+
 
 ### Use it
 
@@ -34,7 +46,7 @@ This API simply allows developers to send any data from a server to another
       }
 
       dependencies {
-          compileOnly("fr.rhaz.minecraft:sockets4mc:4.0.1")
+          compileOnly("fr.rhaz.minecraft:sockets4mc:4.0.2")
       }
 
 - Gradle: add this to your build.gradle
@@ -44,7 +56,7 @@ This API simply allows developers to send any data from a server to another
       }
 
       dependencies {
-          compileOnly 'fr.rhaz.minecraft:sockets4mc:4.0.1'
+          compileOnly 'fr.rhaz.minecraft:sockets4mc:4.0.2'
       }
 
 
@@ -61,7 +73,7 @@ This API simply allows developers to send any data from a server to another
         <dependency>
             <groupId>fr.rhaz.minecraft</groupId>
             <artifactId>sockets4mc</artifactId>
-            <version>4.0.1</version>
+            <version>4.0.2</version>
             <scope>provided</scope>
         </dependency>
       </dependencies>
