@@ -140,6 +140,7 @@ class BungeeTest: BungeePlugin(){
                 // Listen for incoming messages over the channel "Test"
                 bob.onMessage(this, "Test"){
                     val data = it.getExtra<String>("data")
+
                     if(data == "Hello world!")
                         write("Test", "How are you?")
 
@@ -147,7 +148,9 @@ class BungeeTest: BungeePlugin(){
                         logger.info("Yay! It works!")
                 }
 
-                proxy.pluginManager.registerListener(this, object:BungeeListener{
+                // ----------- DEPRECATED -------------
+                // You can also use events, but it is more verbose
+                /*proxy.pluginManager.registerListener(this, */object:BungeeListener{
                     // Here, we will wait for the connection to be successfull in order to start the conversation
                     // Handshaked means "ready"
                     @BungeeEventHandler
@@ -179,7 +182,7 @@ class BungeeTest: BungeePlugin(){
                             e.client.write("AnotherChannel", "How are you?")
                             // This message will be sent over another channel
                     }
-                })
+                }/*)*/
             }
         }
 
