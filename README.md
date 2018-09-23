@@ -14,17 +14,17 @@ This API simply allows developers to send any data from a server to another
 ### Short example
 
     // Server-side
-    socket.onHandshake(this){
+    socket.onHandshake(plugin){
         write("MyChannel", "What is the answer to life?")
 
-        onMessage(this, "MyChannel"){
+        onMessage(plugin, "MyChannel"){
             val answer = it.getExtra<String>("data")
             logger.info("The answer of life is $answer")
         }
     }
 
     // Client-side
-    socket.onMessage(this, "MyChannel"){
+    socket.onMessage(plugin, "MyChannel"){
         val data = it.getExtra<String>("data")
         if(data == "What is the answer to life?")
             write("MyChannel", "42")
