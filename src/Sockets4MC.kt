@@ -397,7 +397,7 @@ interface SocketEvent {
     }
 }
 
-fun onClientEnable(plugin: BungeePlugin, listener: (SocketClient) -> Unit): BungeeListener{
+fun onClientEnable(plugin: BungeePlugin, listener: SocketClient.() -> Unit): BungeeListener{
     return object:BungeeListener{
         @BungeeEventHandler
         fun onEnable(e: SocketEvent.Bungee.Client.Enabled){
@@ -406,7 +406,7 @@ fun onClientEnable(plugin: BungeePlugin, listener: (SocketClient) -> Unit): Bung
     }.also { plugin.proxy.pluginManager.registerListener(plugin, it) }
 }
 
-fun onServerEnable(plugin: BungeePlugin, listener: (SocketServer) -> Unit): BungeeListener{
+fun onServerEnable(plugin: BungeePlugin, listener: SocketServer.() -> Unit): BungeeListener{
     return object:BungeeListener{
         @BungeeEventHandler
         fun onEnable(e: SocketEvent.Bungee.Server.Enabled){
@@ -415,7 +415,7 @@ fun onServerEnable(plugin: BungeePlugin, listener: (SocketServer) -> Unit): Bung
     }.also { plugin.proxy.pluginManager.registerListener(plugin, it) }
 }
 
-fun onServerEnable(plugin: BukkitPlugin, listener: (SocketServer) -> Unit): BukkitListener{
+fun onServerEnable(plugin: BukkitPlugin, listener: SocketServer.() -> Unit): BukkitListener{
     return object:BukkitListener{
         @BukkitEventHandler
         fun onEnable(e: SocketEvent.Bukkit.Server.Enabled){
@@ -424,7 +424,7 @@ fun onServerEnable(plugin: BukkitPlugin, listener: (SocketServer) -> Unit): Bukk
     }.also { plugin.server.pluginManager.registerEvents(it, plugin) }
 }
 
-fun onClientEnable(plugin: BukkitPlugin, listener: (SocketClient) -> Unit): BukkitListener{
+fun onClientEnable(plugin: BukkitPlugin, listener: SocketClient.() -> Unit): BukkitListener{
     return object:BukkitListener{
         @BukkitEventHandler
         fun onEnable(e: SocketEvent.Bukkit.Client.Enabled){
