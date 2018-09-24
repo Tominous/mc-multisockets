@@ -1,8 +1,6 @@
-import fr.rhaz.minecraft.SocketEvent;
-import fr.rhaz.sockets.*;
+import fr.rhaz.sockets.JSONMap;
+import fr.rhaz.sockets.SocketMessenger;
 import org.bukkit.entity.Player;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.concurrent.atomic.AtomicReference;

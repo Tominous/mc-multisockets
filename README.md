@@ -20,11 +20,8 @@ This plugin uses [RHazSockets](https://github.com/RHazDev/RHazSockets)
 
     // Server-side
     onServerEnable(plugin){
-
         onHandshake(plugin){
-
             write("MyChannel", "What is the answer to life?")
-
             onMessage(plugin, "MyChannel"){
                 val answer = it.getExtra<String>("data")
                 logger.info("The answer to life is $answer")
@@ -62,7 +59,6 @@ This plugin uses [RHazSockets](https://github.com/RHazDev/RHazSockets)
             (socket2, msg) -> {
                 String data = msg.getExtra("data");
                 if(data == null) return;
-
                 if(data.equals("What is the answer to life?"));
                     socket.write("MyChannel", "42");
             }
