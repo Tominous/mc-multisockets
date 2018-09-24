@@ -11,7 +11,7 @@ plugins {
     id("maven-publish")
 }
 
-group = "fr.rhaz.sockets"
+group = "fr.rhaz.minecraft"
 version = "4.0.2"
 val pname = "Sockets4MC"
 val desc = "No more Plugin Messaging Channels"
