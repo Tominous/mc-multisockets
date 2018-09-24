@@ -49,7 +49,7 @@ This plugin uses [RHazSockets](https://github.com/RHazDev/RHazSockets)
       }
 
       dependencies {
-          compileOnly("fr.rhaz.minecraft:sockets4mc:4.0.2")
+          compileOnly("fr.rhaz.minecraft:sockets4mc:4.0.3")
       }
 
 - Gradle: add this to your build.gradle
@@ -59,7 +59,7 @@ This plugin uses [RHazSockets](https://github.com/RHazDev/RHazSockets)
       }
 
       dependencies {
-          compileOnly 'fr.rhaz.minecraft:sockets4mc:4.0.2'
+          compileOnly 'fr.rhaz.minecraft:sockets4mc:4.0.3'
       }
 
 
@@ -76,7 +76,7 @@ This plugin uses [RHazSockets](https://github.com/RHazDev/RHazSockets)
         <dependency>
             <groupId>fr.rhaz.minecraft</groupId>
             <artifactId>sockets4mc</artifactId>
-            <version>4.0.2</version>
+            <version>4.0.3</version>
             <scope>provided</scope>
         </dependency>
       </dependencies>
