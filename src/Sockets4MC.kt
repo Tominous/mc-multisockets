@@ -310,6 +310,7 @@ interface SocketEvent {
         open class Server(override val type: Type): Bukkit(Side.server, type) {
             open class Enabled: Server(Type.enabled){
                 lateinit var socket: SocketServer
+                lateinit var key: String
             }
             open class Message: Server(Type.message){
                 lateinit var messenger: SocketMessenger
@@ -330,6 +331,7 @@ interface SocketEvent {
         open class Client(override val type: Type): Bukkit(Side.client, type){
             open class Enabled: Client(Type.enabled){
                 lateinit var socket: SocketClient
+                lateinit var key: String
             }
             open class Message: Client(Type.message){
                 lateinit var client: SocketClient
@@ -358,6 +360,7 @@ interface SocketEvent {
         open class Server(override val type: Type): Bungee(Side.server, type){
             open class Enabled: Server(Type.enabled){
                 lateinit var socket: SocketServer
+                lateinit var key: String
             }
             open class Message: Server(Type.message){
                 lateinit var messenger: SocketMessenger
@@ -378,6 +381,7 @@ interface SocketEvent {
         open class Client(override val type: Type): Bungee(Side.client, type){
             open class Enabled: Client(Type.enabled){
                 lateinit var socket: SocketClient
+                lateinit var key: String
             }
             open class Message: Client(Type.message){
                 lateinit var client: SocketClient
@@ -397,37 +401,77 @@ interface SocketEvent {
     }
 }
 
-fun onClientEnable(plugin: BungeePlugin, listener: SocketClient.() -> Unit): BungeeListener{
+fun onClientEnable(plugin: BungeePlugin, listener: SocketClient.(String) -> Unit): BungeeListener{
     return object:BungeeListener{
         @BungeeEventHandler
         fun onEnable(e: SocketEvent.Bungee.Client.Enabled){
-            listener(e.socket)
+            listener(e.socket, e.key)
         }
     }.also { plugin.proxy.pluginManager.registerListener(plugin, it) }
 }
 
-fun onServerEnable(plugin: BungeePlugin, listener: SocketServer.() -> Unit): BungeeListener{
+fun onServerEnable(plugin: BungeePlugin, listener: SocketServer.(String) -> Unit): BungeeListener{
     return object:BungeeListener{
         @BungeeEventHandler
         fun onEnable(e: SocketEvent.Bungee.Server.Enabled){
+            listener(e.socket, e.key)
+        }
+    }.also { plugin.proxy.pluginManager.registerListener(plugin, it) }
+}
+
+fun onServerEnable(plugin: BukkitPlugin, listener: SocketServer.(String) -> Unit): BukkitListener{
+    return object:BukkitListener{
+        @BukkitEventHandler
+        fun onEnable(e: SocketEvent.Bukkit.Server.Enabled){
+            listener(e.socket, e.key)
+        }
+    }.also { plugin.server.pluginManager.registerEvents(it, plugin) }
+}
+
+fun onClientEnable(plugin: BukkitPlugin, listener: SocketClient.(String) -> Unit): BukkitListener{
+    return object:BukkitListener{
+        @BukkitEventHandler
+        fun onEnable(e: SocketEvent.Bukkit.Client.Enabled){
+            listener(e.socket, e.key)
+        }
+    }.also { plugin.server.pluginManager.registerEvents(it, plugin) }
+}
+
+fun onClientEnable(plugin: BungeePlugin, key: String, listener: SocketClient.() -> Unit): BungeeListener{
+    return object:BungeeListener{
+        @BungeeEventHandler
+        fun onEnable(e: SocketEvent.Bungee.Client.Enabled){
+            if(e.key != key) return
             listener(e.socket)
         }
     }.also { plugin.proxy.pluginManager.registerListener(plugin, it) }
 }
 
-fun onServerEnable(plugin: BukkitPlugin, listener: SocketServer.() -> Unit): BukkitListener{
+fun onServerEnable(plugin: BungeePlugin, key: String, listener: SocketServer.() -> Unit): BungeeListener{
+    return object:BungeeListener{
+        @BungeeEventHandler
+        fun onEnable(e: SocketEvent.Bungee.Server.Enabled){
+            if(e.key != key) return
+            listener(e.socket)
+        }
+    }.also { plugin.proxy.pluginManager.registerListener(plugin, it) }
+}
+
+fun onServerEnable(plugin: BukkitPlugin, key: String, listener: SocketServer.() -> Unit): BukkitListener{
     return object:BukkitListener{
         @BukkitEventHandler
         fun onEnable(e: SocketEvent.Bukkit.Server.Enabled){
+            if(e.key != key) return
             listener(e.socket)
         }
     }.also { plugin.server.pluginManager.registerEvents(it, plugin) }
 }
 
-fun onClientEnable(plugin: BukkitPlugin, listener: SocketClient.() -> Unit): BukkitListener{
+fun onClientEnable(plugin: BukkitPlugin, key: String, listener: SocketClient.() -> Unit): BukkitListener{
     return object:BukkitListener{
         @BukkitEventHandler
         fun onEnable(e: SocketEvent.Bukkit.Client.Enabled){
+            if(e.key != key) return
             listener(e.socket)
         }
     }.also { plugin.server.pluginManager.registerEvents(it, plugin) }
