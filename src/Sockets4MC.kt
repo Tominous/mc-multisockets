@@ -94,6 +94,10 @@ class Sockets4MC {
                             sockets[key] = this
                             start()
                             logger.info("Successfully started server $name (#$key)")
+                            SocketEvent.Bungee.Server.Enabled().also {
+                                it.socket = this
+                                ProxyServer.getInstance().pluginManager.callEvent(it)
+                            }
                         }
                         "client" -> {
                             val host = getString("host", "localhost").lc
@@ -103,6 +107,10 @@ class Sockets4MC {
                                 sockets[key] = this
                                 start()
                                 logger.info("Successfully started client $name (#$key)")
+                                SocketEvent.Bungee.Client.Enabled().also {
+                                    it.socket = this
+                                    ProxyServer.getInstance().pluginManager.callEvent(it)
+                                }
                             }
                         }
                     }
@@ -144,6 +152,10 @@ class Sockets4MC {
                             sockets[key] = this
                             start()
                             logger.info("Successfully started server $name (#$key)")
+                            SocketEvent.Bukkit.Server.Enabled().also {
+                                it.socket = this
+                                Bukkit.getPluginManager().callEvent(it)
+                            }
                         }
                         "client" -> {
                             val host = getString("host", "localhost").lc
@@ -153,6 +165,10 @@ class Sockets4MC {
                                 sockets[key] = this
                                 start()
                                 logger.info("Successfully started client $name (#$key)")
+                                SocketEvent.Bukkit.Client.Enabled().also {
+                                    it.socket = this
+                                    Bukkit.getPluginManager().callEvent(it)
+                                }
                             }
                         }
                     }
@@ -284,7 +300,7 @@ class Sockets4MC {
 
 interface SocketEvent {
     enum class Side{ server, client }
-    enum class Type{ message, connected, disconnected, handshake }
+    enum class Type{ message, connected, disconnected, handshake, enabled }
     val side: Side ; val type: Type
 
     open class Bukkit(
@@ -292,6 +308,9 @@ interface SocketEvent {
     ): SocketEvent, BukkitEvent() {
 
         open class Server(override val type: Type): Bukkit(Side.server, type) {
+            open class Enabled: Server(Type.enabled){
+                lateinit var socket: SocketServer
+            }
             open class Message: Server(Type.message){
                 lateinit var messenger: SocketMessenger
                 lateinit var message: JSONMap
@@ -309,6 +328,9 @@ interface SocketEvent {
         }
 
         open class Client(override val type: Type): Bukkit(Side.client, type){
+            open class Enabled: Client(Type.enabled){
+                lateinit var socket: SocketClient
+            }
             open class Message: Client(Type.message){
                 lateinit var client: SocketClient
                 lateinit var message: JSONMap
@@ -334,6 +356,9 @@ interface SocketEvent {
     ): SocketEvent, BungeeEvent(){
 
         open class Server(override val type: Type): Bungee(Side.server, type){
+            open class Enabled: Server(Type.enabled){
+                lateinit var socket: SocketServer
+            }
             open class Message: Server(Type.message){
                 lateinit var messenger: SocketMessenger
                 lateinit var message: JSONMap
@@ -351,6 +376,9 @@ interface SocketEvent {
         }
 
         open class Client(override val type: Type): Bungee(Side.client, type){
+            open class Enabled: Client(Type.enabled){
+                lateinit var socket: SocketClient
+            }
             open class Message: Client(Type.message){
                 lateinit var client: SocketClient
                 lateinit var message: JSONMap
@@ -367,6 +395,42 @@ interface SocketEvent {
             }
         }
     }
+}
+
+fun onClientEnable(plugin: BungeePlugin, listener: (SocketClient) -> Unit): BungeeListener{
+    return object:BungeeListener{
+        @BungeeEventHandler
+        fun onEnable(e: SocketEvent.Bungee.Client.Enabled){
+            listener(e.socket)
+        }
+    }.also { plugin.proxy.pluginManager.registerListener(plugin, it) }
+}
+
+fun onServerEnable(plugin: BungeePlugin, listener: (SocketServer) -> Unit): BungeeListener{
+    return object:BungeeListener{
+        @BungeeEventHandler
+        fun onEnable(e: SocketEvent.Bungee.Server.Enabled){
+            listener(e.socket)
+        }
+    }.also { plugin.proxy.pluginManager.registerListener(plugin, it) }
+}
+
+fun onServerEnable(plugin: BukkitPlugin, listener: (SocketServer) -> Unit): BukkitListener{
+    return object:BukkitListener{
+        @BukkitEventHandler
+        fun onEnable(e: SocketEvent.Bukkit.Server.Enabled){
+            listener(e.socket)
+        }
+    }.also { plugin.server.pluginManager.registerEvents(it, plugin) }
+}
+
+fun onClientEnable(plugin: BukkitPlugin, listener: (SocketClient) -> Unit): BukkitListener{
+    return object:BukkitListener{
+        @BukkitEventHandler
+        fun onEnable(e: SocketEvent.Bukkit.Client.Enabled){
+            listener(e.socket)
+        }
+    }.also { plugin.server.pluginManager.registerEvents(it, plugin) }
 }
 
 fun SocketClient.onMessage(plugin: BungeePlugin, listener: SocketClient.(String, JSONMap) -> Unit): BungeeListener{
