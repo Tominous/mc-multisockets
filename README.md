@@ -14,7 +14,7 @@ This API simply allows developers to send any data from a server to another, inc
 
 This plugin uses [RHazSockets](https://github.com/RHazDev/RHazSockets)
 
-### Short example
+### Short examples
 
 <h4 align=center>
     Kotlin
@@ -73,7 +73,7 @@ onClientEnable(plugin, listener((socket) -> {
 }));
 ```
 
-### Use it
+### Advanced examples
 
 - [Example in Kotlin](https://github.com/RHazDev/Sockets4MC/blob/master/test/KotlinTest.kt)
 
