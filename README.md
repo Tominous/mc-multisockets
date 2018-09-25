@@ -16,55 +16,58 @@ This plugin uses [RHazSockets](https://github.com/RHazDev/RHazSockets)
 
 ### Short example
 
-    // Kotlin
+Kotlin:
 
-    // Server-side
-    onServerEnable(plugin){
-        onHandshake(plugin){
-            write("MyChannel", "What is the answer to life?")
-            onMessage(plugin, "MyChannel"){
-                val answer = it.getExtra<String>("data")
-                logger.info("The answer to life is $answer")
-            }
-        }
-    }
-
-    // Client-side
-    onClientEnable(plugin){
+```kotlin
+// Server-side
+onServerEnable(plugin){
+    onHandshake(plugin){
+        write("MyChannel", "What is the answer to life?")
         onMessage(plugin, "MyChannel"){
-            val data = it.getExtra<String>("data")
-            if(data == "What is the answer to life?")
-                write("MyChannel", "42")
+            val answer = it.getExtra<String>("data")
+            logger.info("The answer to life is $answer")
         }
     }
+}
 
-    // Java
+// Client-side
+onClientEnable(plugin){
+    onMessage(plugin, "MyChannel"){
+        val data = it.getExtra<String>("data")
+        if(data == "What is the answer to life?")
+            write("MyChannel", "42")
+    }
+}
+```
 
-    // Server-side
-    onServerEnable(plugin, listener((socket) -> {
-        onHandshake(socket, plugin, listener((messenger) -> {
-            messenger.write("MyChannel", "What is the answer to life?");
-            onMessage(messenger, plugin, "MyChannel", listener(
-              (messenger2, msg) -> {
-                String answer = msg.getExtra("data");
-                getLogger().info("The answer to life is "+answer);
-              }
-            ));
-        }));
-    }));
+Java:
 
-    // Client-side
-    onClientEnable(plugin, listener((socket) -> {
-        onMessage(socket, plugin, "MyChannel", listener(
-            (socket2, msg) -> {
-                String data = msg.getExtra("data");
-                if(data == null) return;
-                if(data.equals("What is the answer to life?"));
-                    socket.write("MyChannel", "42");
-            }
+```java
+// Server-side
+onServerEnable(plugin, listener((socket) -> {
+    onHandshake(socket, plugin, listener((messenger) -> {
+        messenger.write("MyChannel", "What is the answer to life?");
+        onMessage(messenger, plugin, "MyChannel", listener(
+          (messenger2, msg) -> {
+            String answer = msg.getExtra("data");
+            getLogger().info("The answer to life is "+answer);
+          }
         ));
     }));
+}));
 
+// Client-side
+onClientEnable(plugin, listener((socket) -> {
+    onMessage(socket, plugin, "MyChannel", listener(
+        (socket2, msg) -> {
+            String data = msg.getExtra("data");
+            if(data == null) return;
+            if(data.equals("What is the answer to life?"))
+                socket.write("MyChannel", "42");
+        }
+    ));
+}));
+```
 
 ### Use it
 
