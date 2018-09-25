@@ -41,7 +41,7 @@ This plugin uses [RHazSockets](https://github.com/RHazDev/RHazSockets)
     // Java
 
     // Server-side
-    onServerEnabled(plugin, listener((socket) -> {
+    onServerEnable(plugin, listener((socket) -> {
         onHandshake(socket, plugin, listener((messenger) -> {
             messenger.write("MyChannel", "What is the answer to life?");
             onMessage(messenger, plugin, "MyChannel", listener(
@@ -54,7 +54,7 @@ This plugin uses [RHazSockets](https://github.com/RHazDev/RHazSockets)
     }));
 
     // Client-side
-    onClientEnabled(plugin, listener((socket) -> {
+    onClientEnable(plugin, listener((socket) -> {
         onMessage(socket, plugin, "MyChannel", listener(
             (socket2, msg) -> {
                 String data = msg.getExtra("data");
