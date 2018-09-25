@@ -42,7 +42,7 @@ open class Sockets4Bukkit: BukkitPlugin() {
 }
 
 open class Sockets4Bungee: BungeePlugin() {
-    override fun onEnable() { proxy.scheduler.schedule(this, {Sockets4MC.bungee(this)}, 0, TimeUnit.SECONDS) }
+    override fun onEnable() { proxy.scheduler.schedule(this, {Sockets4MC.bungee(this)}, 1, TimeUnit.SECONDS) }
     override fun onDisable() = Sockets4MC.disable()
 }
 
@@ -85,7 +85,7 @@ object Sockets4MC {
                     val port = getInt("port", 25598)
                     val password = getString("password", "mypassword")
 
-                    logger.info("Starting $name ($key)...")
+                    logger.info("Starting $name (#$key)...")
                     when(getString("type", "server").lc){
 
                         "server" -> SocketServer(server, name, port, password).apply {
@@ -126,7 +126,6 @@ object Sockets4MC {
                     }
                 }
             }
-            logger.info("Successfully enabled Sockets4MC")
         } ?: logger.warning("Could not load configuration")
     }
 
@@ -153,7 +152,7 @@ object Sockets4MC {
                     val port = getInt("port", 25598)
                     val password = getString("password", "mypassword")
 
-                    logger.info("Starting $name ($key)...")
+                    logger.info("Starting $name (#$key)...")
                     when(getString("type", "server").lc){
 
                         "server" -> SocketServer(server, name, port, password).apply {
@@ -194,7 +193,6 @@ object Sockets4MC {
                     }
                 }
             }
-            logger.info("Successfully enabled Sockets4MC")
         } ?: logger.warning("Could not load configuration")
     }
 
