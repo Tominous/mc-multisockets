@@ -26,7 +26,7 @@ public class JavaTest extends JavaPlugin {
 
                 // And Bob is our target (we interact with him with a messenger)
                 // We use an atomic reference because it may be in another thread
-                AtomicReference<SocketMessenger> bob = null;
+                AtomicReference<SocketMessenger> bob = new AtomicReference<>();
 
                 // We listen for incoming connections from Bob
                 onHandshake(/*socket:*/ alice, plugin, /*name:*/ "Bob", listener(
@@ -36,7 +36,7 @@ public class JavaTest extends JavaPlugin {
                             messenger.write("Test", "Hello world!");
                             // We send him a message over the channel "Test" and the extra "data"
 
-                            // We listen for incoming messages from Bob's messenger
+                            // We listen for incoming messages from Bob's messenger over the channel "Test"
                             onMessage(/*Bob's messenger:*/ messenger, this, "Test", listener(
 
                                     (/*still Bob's messenger*/ messenger2, msg) -> {
@@ -67,7 +67,7 @@ public class JavaTest extends JavaPlugin {
                 // So it acts as a client and as a messenger to its server (Alice)
 
                 // We listen for incoming messages over the channel "Test"
-                onMessage(/*socket:*/ bob, /*plugin:*/ this, /*channel:*/ "Test", listener(
+                onMessage(/*socket:*/ bob, plugin, /*channel:*/ "Test", listener(
 
                         (/*still Bob:*/ socket2, /*message:*/ msg) -> {
 
@@ -90,7 +90,7 @@ public class JavaTest extends JavaPlugin {
                 // Register for ALL incoming messages to Bob (no matter what channel it is)
                 // and log them
                 onMessage(bob, plugin, listener(
-                    (socket, channel, msg) -> {
+                    (/*still bob:*/ socket, channel, msg) -> {
                         String data = msg.getExtra("data");
                         getLogger().info(channel + ": " + data);
                     }
@@ -107,10 +107,10 @@ public class JavaTest extends JavaPlugin {
                     // using only commas to separate keys and value
                     // Usage: new JSONMap(key, value, key, value, key, value, ...)
                     bob.write("PlayerInfo", new JSONMap(
-                            "username", player.getName(),
-                            "displayname", player.getDisplayName(),
-                            "health", player.getHealth()
-                            // "world", "gamemode", "experience", ...
+                        "username", player.getName(),
+                        "displayname", player.getDisplayName(),
+                        "health", player.getHealth()
+                        // "world", "gamemode", "experience", ...
                     ));
                 };
                 // You can call this function later with
