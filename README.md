@@ -16,7 +16,9 @@ This plugin uses [RHazSockets](https://github.com/RHazDev/RHazSockets)
 
 ### Short example
 
-Kotlin:
+<h4 align=center>
+    Kotlin
+</h4>
 
 ```kotlin
 // Server-side
@@ -40,7 +42,9 @@ onClientEnable(plugin){
 }
 ```
 
-Java:
+<h4 align=center>
+    Java
+</h4>
 
 ```java
 // Server-side
