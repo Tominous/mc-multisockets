@@ -1,5 +1,6 @@
 package fr.rhaz.minecraft.sockets
 
+import BukkitEvent
 import TriConsumer
 import com.google.gson.JsonParser
 import fr.rhaz.sockets.*
@@ -14,14 +15,12 @@ import net.md_5.bungee.config.Configuration
 import net.md_5.bungee.config.ConfigurationProvider
 import org.bukkit.Bukkit
 import org.bukkit.configuration.file.YamlConfiguration
-import org.bukkit.event.HandlerList
 import org.bukkit.event.player.PlayerJoinEvent
 import java.io.File
 import java.io.IOException
 import java.io.InputStreamReader
 import java.net.URL
 import java.nio.file.Files
-import java.sql.Time
 import java.util.concurrent.TimeUnit
 import java.util.function.BiConsumer
 import java.util.function.Consumer
@@ -31,7 +30,6 @@ import net.md_5.bungee.api.plugin.Listener as BungeeListener
 import net.md_5.bungee.api.plugin.Plugin as BungeePlugin
 import net.md_5.bungee.config.YamlConfiguration as BungeeYaml
 import net.md_5.bungee.event.EventHandler as BungeeEventHandler
-import org.bukkit.event.Event as BukkitEvent
 import org.bukkit.event.EventHandler as BukkitEventHandler
 import org.bukkit.event.Listener as BukkitListener
 import org.bukkit.plugin.java.JavaPlugin as BukkitPlugin
@@ -366,9 +364,6 @@ interface SocketEvent {
                 lateinit var client: SocketClient
             }
         }
-
-        val _handlers = HandlerList()
-        override fun getHandlers() = _handlers
     }
 
     open class Bungee(
