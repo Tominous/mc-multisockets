@@ -1,16 +1,15 @@
-import fr.rhaz.sockets.JSONMap;
-import fr.rhaz.sockets.SocketMessenger;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
-import static fr.rhaz.minecraft.Sockets4MCKt.*;
-
 // --- Java example of Bukkit plugin ---
 // Let's call our server Alice and our client Bob
 //
+import static fr.rhaz.minecraft.sockets.Sockets4MCKt.*; // Sockets4MC
+import fr.rhaz.sockets.*; // RHazSockets
+
 public class JavaTest extends JavaPlugin {
     @Override
     public void onEnable() {

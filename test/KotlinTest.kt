@@ -1,8 +1,3 @@
-import fr.rhaz.minecraft.*
-import fr.rhaz.sockets.JSONMap
-import fr.rhaz.sockets.SocketClient
-import fr.rhaz.sockets.SocketMessenger
-import fr.rhaz.sockets.SocketServer
 import net.md_5.bungee.api.connection.ProxiedPlayer
 import net.md_5.bungee.api.plugin.Event as BungeeEvent
 import net.md_5.bungee.api.plugin.Listener as BungeeListener
@@ -17,6 +12,9 @@ import org.bukkit.plugin.java.JavaPlugin as BukkitPlugin
 // *** Example for BungeeCord plugin ***
 // Let's call our server Alice and our client Bob
 //
+import fr.rhaz.minecraft.sockets.* // Sockets4MC
+import fr.rhaz.sockets.* // RHazSockets
+
 class BungeeTest: BungeePlugin(){
 
     override fun onEnable() {

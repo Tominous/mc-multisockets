@@ -1,4 +1,4 @@
 name: @name@
 version: @version@
-main: fr.rhaz.minecraft.Sockets4Bukkit
+main: fr.rhaz.minecraft.sockets.Sockets4Bukkit
 author: Hazae41

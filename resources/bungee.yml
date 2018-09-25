@@ -1,4 +1,4 @@
 name: @name@
 version: @version@
-main: fr.rhaz.minecraft.Sockets4Bungee
+main: fr.rhaz.minecraft.sockets.Sockets4Bungee
 author: Hazae41

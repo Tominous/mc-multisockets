@@ -1,4 +1,4 @@
-package fr.rhaz.minecraft
+package fr.rhaz.minecraft.sockets
 
 import TriConsumer
 import com.google.gson.JsonParser
@@ -21,6 +21,7 @@ import java.io.IOException
 import java.io.InputStreamReader
 import java.net.URL
 import java.nio.file.Files
+import java.sql.Time
 import java.util.concurrent.TimeUnit
 import java.util.function.BiConsumer
 import java.util.function.Consumer
@@ -36,17 +37,16 @@ import org.bukkit.event.Listener as BukkitListener
 import org.bukkit.plugin.java.JavaPlugin as BukkitPlugin
 
 open class Sockets4Bukkit: BukkitPlugin() {
-    override fun onEnable() = minecraftSockets.bukkit(this)
-    override fun onDisable() = minecraftSockets.disable()
+    override fun onEnable() { server.scheduler.runTask(this){Sockets4MC.bukkit(this)} }
+    override fun onDisable() = Sockets4MC.disable()
 }
 
 open class Sockets4Bungee: BungeePlugin() {
-    override fun onEnable() = minecraftSockets.bungee(this)
-    override fun onDisable() = minecraftSockets.disable()
+    override fun onEnable() { proxy.scheduler.schedule(this, {Sockets4MC.bungee(this)}, 0, TimeUnit.SECONDS) }
+    override fun onDisable() = Sockets4MC.disable()
 }
 
-val minecraftSockets = Sockets4MC()
-class Sockets4MC {
+object Sockets4MC {
     lateinit var plugin: Any
     lateinit var environment: String
     var logger: Logger = Logger.getGlobal()
@@ -63,24 +63,31 @@ class Sockets4MC {
     }
 
     fun bungee(plugin: Sockets4Bungee){
+
         this.plugin = plugin
         plugin.update(15938, LIGHT_PURPLE)
         environment = "bungee"
         logger = plugin.logger
         dataFolder = plugin.dataFolder
+
         val file = File(dataFolder, "config.yml")
         plugin.load(file)?.apply {
+
             debug = getBoolean("debug", false)
             for(key in keys) {
                 if(key == "debug") continue
+
                 getSection(key).apply section@{
+
                     val enabled = getBoolean("enabled", true)
                     if(!enabled) return@section
                     val name = getString("name", "MyProxy")
                     val port = getInt("port", 25598)
                     val password = getString("password", "mypassword")
+
                     logger.info("Starting $name ($key)...")
                     when(getString("type", "server").lc){
+
                         "server" -> SocketServer(server, name, port, password).apply {
                             config.buffer = getInt("buffer", 100)
                             config.timeout = getLong("timeout", 1000)
@@ -96,9 +103,11 @@ class Sockets4MC {
                             logger.info("Successfully started server $name (#$key)")
                             SocketEvent.Bungee.Server.Enabled().also {
                                 it.socket = this
+                                it.key = key
                                 ProxyServer.getInstance().pluginManager.callEvent(it)
                             }
                         }
+
                         "client" -> {
                             val host = getString("host", "localhost").lc
                             SocketClient(client, name, host, port, password).apply {
@@ -109,6 +118,7 @@ class Sockets4MC {
                                 logger.info("Successfully started client $name (#$key)")
                                 SocketEvent.Bungee.Client.Enabled().also {
                                     it.socket = this
+                                    it.key = key
                                     ProxyServer.getInstance().pluginManager.callEvent(it)
                                 }
                             }
@@ -121,24 +131,31 @@ class Sockets4MC {
     }
 
     fun bukkit(plugin: Sockets4Bukkit){
+
         this.plugin = plugin
         plugin.update(15938, LIGHT_PURPLE)
         environment = "bukkit"
         logger = plugin.logger
         dataFolder = plugin.dataFolder
+
         val file = File(dataFolder, "config.yml")
         plugin.load(file)?.apply {
             debug = getBoolean("debug", false)
+
             for (key in getKeys(false)) {
                 if(key == "debug") continue
+
                 getConfigurationSection(key).apply section@{
+
                     val enabled = getBoolean("enabled", true)
                     if(!enabled) return@section
                     val name = getString("name", "MyBukkit")
                     val port = getInt("port", 25598)
                     val password = getString("password", "mypassword")
+
                     logger.info("Starting $name ($key)...")
                     when(getString("type", "server").lc){
+
                         "server" -> SocketServer(server, name, port, password).apply {
                             config.buffer = getInt("buffer", 100)
                             config.timeout = getLong("timeout", 1000)
@@ -154,9 +171,11 @@ class Sockets4MC {
                             logger.info("Successfully started server $name (#$key)")
                             SocketEvent.Bukkit.Server.Enabled().also {
                                 it.socket = this
+                                it.key = key
                                 Bukkit.getPluginManager().callEvent(it)
                             }
                         }
+
                         "client" -> {
                             val host = getString("host", "localhost").lc
                             SocketClient(client, name, host, port, password).apply {
@@ -167,6 +186,7 @@ class Sockets4MC {
                                 logger.info("Successfully started client $name (#$key)")
                                 SocketEvent.Bukkit.Client.Enabled().also {
                                     it.socket = this
+                                    it.key = key
                                     Bukkit.getPluginManager().callEvent(it)
                                 }
                             }
