@@ -88,7 +88,7 @@ onClientEnable(plugin, listener((socket) -> {
       }
 
       dependencies {
-          compileOnly("fr.rhaz.minecraft:sockets4mc:4.0.6")
+          compileOnly("fr.rhaz.minecraft:sockets4mc:4.0.7")
       }
 
 - Gradle: add this to your build.gradle
@@ -98,7 +98,7 @@ onClientEnable(plugin, listener((socket) -> {
       }
 
       dependencies {
-          compileOnly 'fr.rhaz.minecraft:sockets4mc:4.0.6'
+          compileOnly 'fr.rhaz.minecraft:sockets4mc:4.0.7'
       }
 
 
@@ -115,7 +115,7 @@ onClientEnable(plugin, listener((socket) -> {
         <dependency>
             <groupId>fr.rhaz.minecraft</groupId>
             <artifactId>sockets4mc</artifactId>
-            <version>4.0.6</version>
+            <version>4.0.7</version>
             <scope>provided</scope>
         </dependency>
       </dependencies>
