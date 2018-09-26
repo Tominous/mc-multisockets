@@ -40,7 +40,7 @@ open class Sockets4Bukkit: BukkitPlugin() {
 }
 
 open class Sockets4Bungee: BungeePlugin() {
-    override fun onEnable() { proxy.scheduler.schedule(this, {Sockets4MC.bungee(this)}, 1, TimeUnit.SECONDS) }
+    override fun onEnable() { proxy.scheduler.schedule(this, {Sockets4MC.bungee(this)}, 8, TimeUnit.SECONDS) }
     override fun onDisable() = Sockets4MC.disable()
 }
 
@@ -758,12 +758,14 @@ fun CommandSender.msg(msg: String) = msg(text(msg))
 fun CommandSender.msg(text: TextComponent) = sendMessage(text)
 fun text(string: String) = TextComponent(string.replace("&", "§"))
 
-fun spiget(id: Int): String = try {
-    val base = "https://api.spiget.org/v2/resources/"
-    val conn = URL("$base$id/versions?size=100").openConnection()
-    val json = InputStreamReader(conn.inputStream).let{ JsonParser().parse(it).asJsonArray}
-    json.last().asJsonObject["name"].asString
-} catch(e: IOException) {e.printStackTrace(); "0"}
+fun spiget(id: Int, callback: (String) -> Unit) = Thread {
+    try {
+        val base = "https://api.spiget.org/v2/resources/"
+        val conn = URL("$base$id/versions?size=100").openConnection()
+        val json = InputStreamReader(conn.inputStream).let { JsonParser().parse(it).asJsonArray }
+        callback(json.last().asJsonObject["name"].asString)
+    } catch (e: IOException){}
+}.start()
 
 infix fun String.newerThan(v: String): Boolean = false.also{
     val s1 = split('.');
@@ -776,9 +778,9 @@ infix fun String.newerThan(v: String): Boolean = false.also{
     }
 }
 
-fun BukkitPlugin.update(id: Int, color: ChatColor) {
+fun BukkitPlugin.update(id: Int, color: ChatColor) = spiget(id) here@{
 
-    if(!(spiget(id) newerThan description.version)) return;
+    if(!(it newerThan description.version)) return@here;
 
     val message = text("An update is available for ${description.name}!").apply {
         val url = "https://www.spigotmc.org/resources/$id"
@@ -800,13 +802,13 @@ fun BukkitPlugin.update(id: Int, color: ChatColor) {
     }, this)
 }
 
-fun BungeePlugin.update(id: Int, color: ChatColor) {
+fun BungeePlugin.update(id: Int, color: ChatColor) = spiget(id) here@{
 
-    if(!(spiget(id) newerThan description.version)) return;
+    if(!(it newerThan description.version)) return@here;
 
     val message = text("An update is available for ${description.name}!").apply {
         val url = "https://www.spigotmc.org/resources/$id"
-        text += "\nDownload it here: $url"
+        text += " Download it here: $url"
         this.color = color
         clickEvent = ClickEvent(ClickEvent.Action.OPEN_URL, url)
     }
