@@ -211,6 +211,7 @@ object Sockets4MC {
             }
 
             override fun onHandshake(mess: SocketMessenger, name: String){
+                logger.info("§aThe connection ${mess.name}<->${name} is available")
                 SocketEvent.Bukkit.Server.Handshake().apply {
                     messenger = mess
                     Bukkit.getPluginManager().callEvent(this)
@@ -254,6 +255,7 @@ object Sockets4MC {
             }
 
             override fun onHandshake(mess: SocketMessenger, name: String) {
+                logger.info("§aThe connection ${mess.name}<->${name} is available")
                 SocketEvent.Bungee.Server.Handshake().apply {
                     messenger = mess
                     ProxyServer.getInstance().pluginManager.callEvent(this)
@@ -297,6 +299,7 @@ object Sockets4MC {
             }
 
             override fun onHandshake(client: SocketClient) {
+                logger.info("§aThe connection ${client.name}<->${client.target.name} is available")
                 SocketEvent.Bukkit.Client.Handshake().apply {
                     this.client = client
                     Bukkit.getPluginManager().callEvent(this)
@@ -315,42 +318,43 @@ object Sockets4MC {
     val BungeePlugin.socketClient get() = run here@{
         object: SocketApp.Client(){
 
-        override fun run(runnable: Runnable) {
-            ProxyServer.getInstance().scheduler.runAsync(this@here, runnable)
-        }
+            override fun run(runnable: Runnable) {
+                ProxyServer.getInstance().scheduler.runAsync(this@here, runnable)
+            }
 
-        override fun log(err: String){ if(debug) logger.info(err) }
+            override fun log(err: String){ if(debug) logger.info(err) }
 
-        override fun onMessage(client: SocketClient, map: JSONMap) {
-            SocketEvent.Bungee.Client.Message().apply {
-                this.client = client
-                message = map
-                channel = map.getExtra<String>("channel") ?: "unknown"
-                ProxyServer.getInstance().pluginManager.callEvent(this)
+            override fun onMessage(client: SocketClient, map: JSONMap) {
+                SocketEvent.Bungee.Client.Message().apply {
+                    this.client = client
+                    message = map
+                    channel = map.getExtra<String>("channel") ?: "unknown"
+                    ProxyServer.getInstance().pluginManager.callEvent(this)
+                }
+            }
+
+            override fun onConnect(client: SocketClient){
+                SocketEvent.Bungee.Client.Connected().apply {
+                    this.client = client
+                    ProxyServer.getInstance().pluginManager.callEvent(this)
+                }
+            }
+
+            override fun onHandshake(client: SocketClient){
+                logger.info("§aThe connection ${client.name}<->${client.target.name} is available")
+                SocketEvent.Bungee.Client.Handshake().apply {
+                    this.client = client
+                    ProxyServer.getInstance().pluginManager.callEvent(this)
+                }
+            }
+
+            override fun onDisconnect(client: SocketClient){
+                SocketEvent.Bungee.Client.Disconnected().apply {
+                    this.client = client
+                    ProxyServer.getInstance().pluginManager.callEvent(this)
+                }
             }
         }
-
-        override fun onConnect(client: SocketClient){
-            SocketEvent.Bungee.Client.Connected().apply {
-                this.client = client
-                ProxyServer.getInstance().pluginManager.callEvent(this)
-            }
-        }
-
-        override fun onHandshake(client: SocketClient){
-            SocketEvent.Bungee.Client.Handshake().apply {
-                this.client = client
-                ProxyServer.getInstance().pluginManager.callEvent(this)
-            }
-        }
-
-        override fun onDisconnect(client: SocketClient){
-            SocketEvent.Bungee.Client.Disconnected().apply {
-                this.client = client
-                ProxyServer.getInstance().pluginManager.callEvent(this)
-            }
-        }
-    }
     }
 
 }
