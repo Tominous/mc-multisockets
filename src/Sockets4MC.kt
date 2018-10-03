@@ -16,6 +16,7 @@ import net.md_5.bungee.config.ConfigurationProvider
 import org.bukkit.Bukkit
 import org.bukkit.configuration.file.YamlConfiguration
 import org.bukkit.event.player.PlayerJoinEvent
+import org.bukkit.scheduler.BukkitRunnable
 import java.io.File
 import java.io.IOException
 import java.io.InputStreamReader
@@ -46,7 +47,6 @@ open class Sockets4Bungee: BungeePlugin() {
 
 object Sockets4MC {
     lateinit var plugin: Any
-    lateinit var environment: String
     var logger: Logger = Logger.getGlobal()
     var dataFolder = File(".")
     var debug = false
@@ -64,7 +64,6 @@ object Sockets4MC {
 
         this.plugin = plugin
         plugin.update(15938, LIGHT_PURPLE)
-        environment = "bungee"
         logger = plugin.logger
         dataFolder = plugin.dataFolder
 
@@ -131,7 +130,6 @@ object Sockets4MC {
 
         this.plugin = plugin
         plugin.update(15938, LIGHT_PURPLE)
-        environment = "bukkit"
         logger = plugin.logger
         dataFolder = plugin.dataFolder
 
@@ -195,16 +193,26 @@ object Sockets4MC {
     }
 
     val server = object: SocketApp.Server(){
-        override fun log(err: String) = if(debug) logger.info(err) else Unit
+
+        override fun run(runnable: Runnable){
+            val plugin = plugin
+            when(plugin){
+                is BukkitPlugin -> Bukkit.getScheduler().runTaskAsynchronously(plugin, runnable)
+                is BungeePlugin -> ProxyServer.getInstance().scheduler.runAsync(plugin, runnable)
+            }
+        }
+
+        override fun log(err: String){ if(debug) logger.info(err) }
+
         override fun onMessage(mess: SocketMessenger, map: JSONMap) {
-            when(environment.lc) {
-                "bukkit" -> SocketEvent.Bukkit.Server.Message().apply {
+            when(plugin) {
+                is BukkitPlugin -> SocketEvent.Bukkit.Server.Message().apply {
                     messenger = mess
                     message = map
                     channel = map.getExtra<String>("channel") ?: "unknown"
                     Bukkit.getPluginManager().callEvent(this)
                 }
-                "bungee" -> SocketEvent.Bungee.Server.Message().apply {
+                is BungeePlugin -> SocketEvent.Bungee.Server.Message().apply {
                     messenger = mess
                     message = map
                     channel = map.getExtra<String>("channel") ?: "unknown"
@@ -214,12 +222,12 @@ object Sockets4MC {
         }
 
         override fun onConnect(mess: SocketMessenger){
-            when(environment.lc) {
-                "bukkit" -> SocketEvent.Bukkit.Server.Connected().apply {
+            when(plugin) {
+                is BukkitPlugin -> SocketEvent.Bukkit.Server.Connected().apply {
                     messenger = mess
                     Bukkit.getPluginManager().callEvent(this)
                 }
-                "bungee" -> SocketEvent.Bungee.Server.Connected().apply {
+                is BungeePlugin -> SocketEvent.Bungee.Server.Connected().apply {
                     messenger = mess
                     ProxyServer.getInstance().pluginManager.callEvent(this)
                 }
@@ -227,12 +235,12 @@ object Sockets4MC {
         }
 
         override fun onHandshake(mess: SocketMessenger, name: String){
-            when(environment.lc) {
-                "bukkit" -> SocketEvent.Bukkit.Server.Handshake().apply {
+            when(plugin) {
+                is BukkitPlugin -> SocketEvent.Bukkit.Server.Handshake().apply {
                     messenger = mess
                     Bukkit.getPluginManager().callEvent(this)
                 }
-                "bungee" -> SocketEvent.Bungee.Server.Handshake().apply {
+                is BungeePlugin -> SocketEvent.Bungee.Server.Handshake().apply {
                     messenger = mess
                     ProxyServer.getInstance().pluginManager.callEvent(this)
                 }
@@ -240,12 +248,12 @@ object Sockets4MC {
         }
 
         override fun onDisconnect(mess: SocketMessenger){
-            when(environment.lc) {
-                "bukkit" -> SocketEvent.Bukkit.Server.Disconnected().apply {
+            when(plugin) {
+                is BukkitPlugin -> SocketEvent.Bukkit.Server.Disconnected().apply {
                     messenger = mess
                     Bukkit.getPluginManager().callEvent(this)
                 }
-                "bungee" -> SocketEvent.Bungee.Server.Disconnected().apply {
+                is BungeePlugin -> SocketEvent.Bungee.Server.Disconnected().apply {
                     messenger = mess
                     ProxyServer.getInstance().pluginManager.callEvent(this)
                 }
@@ -254,16 +262,26 @@ object Sockets4MC {
     }
 
     val client = object: SocketApp.Client(){
-        override fun log(err: String) = if(debug) logger.info(err) else Unit
+
+        override fun run(runnable: Runnable){
+            val plugin = plugin
+            when(plugin){
+                is BukkitPlugin -> Bukkit.getScheduler().runTaskAsynchronously(plugin, runnable)
+                is BungeePlugin -> ProxyServer.getInstance().scheduler.runAsync(plugin, runnable)
+            }
+        }
+
+        override fun log(err: String){ if(debug) logger.info(err) }
+
         override fun onMessage(client: SocketClient, map: JSONMap) {
-            when(environment.lc) {
-                "bukkit" -> SocketEvent.Bukkit.Client.Message().apply {
+            when(plugin) {
+                is BukkitPlugin -> SocketEvent.Bukkit.Client.Message().apply {
                     this.client = client
                     message = map
                     channel = map.getExtra<String>("channel") ?: "unknown"
                     Bukkit.getPluginManager().callEvent(this)
                 }
-                "bungee" -> SocketEvent.Bungee.Client.Message().apply {
+                is BungeePlugin -> SocketEvent.Bungee.Client.Message().apply {
                     this.client = client
                     message = map
                     channel = map.getExtra<String>("channel") ?: "unknown"
@@ -273,12 +291,12 @@ object Sockets4MC {
         }
 
         override fun onConnect(client: SocketClient){
-            when(environment.lc) {
-                "bukkit" -> SocketEvent.Bukkit.Client.Connected().apply {
+            when(plugin) {
+                is BukkitPlugin -> SocketEvent.Bukkit.Client.Connected().apply {
                     this.client = client
                     Bukkit.getPluginManager().callEvent(this)
                 }
-                "bungee" -> SocketEvent.Bungee.Client.Connected().apply {
+                is BungeePlugin -> SocketEvent.Bungee.Client.Connected().apply {
                     this.client = client
                     ProxyServer.getInstance().pluginManager.callEvent(this)
                 }
@@ -286,12 +304,12 @@ object Sockets4MC {
         }
 
         override fun onHandshake(client: SocketClient){
-            when(environment.lc) {
-                "bukkit" -> SocketEvent.Bukkit.Client.Handshake().apply {
+            when(plugin) {
+                is BukkitPlugin -> SocketEvent.Bukkit.Client.Handshake().apply {
                     this.client = client
                     Bukkit.getPluginManager().callEvent(this)
                 }
-                "bungee" -> SocketEvent.Bungee.Client.Handshake().apply {
+                is BungeePlugin -> SocketEvent.Bungee.Client.Handshake().apply {
                     this.client = client
                     ProxyServer.getInstance().pluginManager.callEvent(this)
                 }
@@ -299,12 +317,12 @@ object Sockets4MC {
         }
 
         override fun onDisconnect(client: SocketClient){
-            when(environment.lc) {
-                "bukkit" -> SocketEvent.Bukkit.Client.Disconnected().apply {
+            when(plugin) {
+                is BukkitPlugin -> SocketEvent.Bukkit.Client.Disconnected().apply {
                     this.client = client
                     Bukkit.getPluginManager().callEvent(this)
                 }
-                "bungee" -> SocketEvent.Bungee.Client.Disconnected().apply {
+                is BungeePlugin -> SocketEvent.Bungee.Client.Disconnected().apply {
                     this.client = client
                     ProxyServer.getInstance().pluginManager.callEvent(this)
                 }

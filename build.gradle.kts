@@ -12,7 +12,7 @@ plugins {
 }
 
 group = "fr.rhaz.minecraft"
-version = "4.0.7"
+version = "4.0.7.1"
 val pname = "Sockets4MC"
 val desc = "No more Plugin Messaging Channels"
 
