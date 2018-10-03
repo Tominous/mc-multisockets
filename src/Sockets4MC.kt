@@ -653,7 +653,7 @@ fun SocketServer.onHandshake(plugin: BukkitPlugin, listener: SocketMessenger.(St
         @BukkitEventHandler
         fun onHandshake(e: SocketEvent.Bukkit.Server.Handshake){
             if(e.messenger.server != socket) return
-            listener(e.messenger, e.messenger.target.name)
+            listener(e.messenger, e.messenger.target.name ?: return)
         }
     }.also { plugin.server.pluginManager.registerEvents(it, plugin) }
 }
@@ -687,7 +687,7 @@ fun SocketServer.onDisconnect(plugin: BukkitPlugin, listener: SocketMessenger.(S
         @BukkitEventHandler
         fun onDisconnect(e: SocketEvent.Bukkit.Server.Disconnected){
             if(e.messenger.server != socket) return
-            listener(e.messenger, e.messenger.target.name)
+            listener(e.messenger, e.messenger.target.name ?: return)
         }
     }.also { plugin.server.pluginManager.registerEvents(it, plugin) }
 }
@@ -733,7 +733,7 @@ fun SocketServer.onHandshake(plugin: BungeePlugin, listener: SocketMessenger.(St
         @BungeeEventHandler
         fun onHandshake(e: SocketEvent.Bungee.Server.Handshake){
             if(e.messenger.server != socket) return;
-            listener(e.messenger, e.messenger.target.name)
+            listener(e.messenger, e.messenger.target.name ?: return)
         }
     }.also { plugin.proxy.pluginManager.registerListener(plugin, it) }
 }
@@ -755,7 +755,7 @@ fun SocketServer.onDisconnect(plugin: BungeePlugin, listener: SocketMessenger.(S
         @BungeeEventHandler
         fun onDisconnect(e: SocketEvent.Bungee.Server.Disconnected) {
             if (e.messenger.server != socket) return;
-            listener(e.messenger, e.messenger.target.name)
+            listener(e.messenger, e.messenger.target.name ?: return)
         }
     }.also { plugin.proxy.pluginManager.registerListener(plugin, it) }
 }
