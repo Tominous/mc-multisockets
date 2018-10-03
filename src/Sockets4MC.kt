@@ -16,7 +16,6 @@ import net.md_5.bungee.config.ConfigurationProvider
 import org.bukkit.Bukkit
 import org.bukkit.configuration.file.YamlConfiguration
 import org.bukkit.event.player.PlayerJoinEvent
-import org.bukkit.scheduler.BukkitRunnable
 import java.io.File
 import java.io.IOException
 import java.io.InputStreamReader
@@ -25,7 +24,6 @@ import java.nio.file.Files
 import java.util.concurrent.TimeUnit
 import java.util.function.BiConsumer
 import java.util.function.Consumer
-import java.util.logging.Logger
 import net.md_5.bungee.api.plugin.Event as BungeeEvent
 import net.md_5.bungee.api.plugin.Listener as BungeeListener
 import net.md_5.bungee.api.plugin.Plugin as BungeePlugin
@@ -36,22 +34,24 @@ import org.bukkit.event.Listener as BukkitListener
 import org.bukkit.plugin.java.JavaPlugin as BukkitPlugin
 
 open class Sockets4Bukkit: BukkitPlugin() {
-    override fun onEnable() { server.scheduler.runTask(this){Sockets4MC.bukkit(this)} }
+    override fun onEnable() {
+        server.scheduler.runTask(this){Sockets4MC.bukkit(this)}
+    }
     override fun onDisable() = Sockets4MC.disable()
 }
 
 open class Sockets4Bungee: BungeePlugin() {
-    override fun onEnable() { proxy.scheduler.schedule(this, {Sockets4MC.bungee(this)}, 8, TimeUnit.SECONDS) }
+    override fun onEnable() {
+        proxy.scheduler.schedule(this, {Sockets4MC.bungee(this)}, 8, TimeUnit.SECONDS)
+    }
     override fun onDisable() = Sockets4MC.disable()
 }
 
 object Sockets4MC {
-    lateinit var plugin: Any
-    var logger: Logger = Logger.getGlobal()
-    var dataFolder = File(".")
-    var debug = false
 
+    var debug = false
     val sockets = mutableMapOf<String, SocketHandler>()
+
     fun disable() = sockets.values.forEach {
         when(it){
             is SocketClient -> it.interrupt()
@@ -60,200 +60,209 @@ object Sockets4MC {
         sockets.clear()
     }
 
-    fun bungee(plugin: Sockets4Bungee){
+    fun bungee(plugin: Sockets4Bungee) = plugin.apply{
 
-        this.plugin = plugin
-        plugin.update(15938, LIGHT_PURPLE)
-        logger = plugin.logger
-        dataFolder = plugin.dataFolder
+        update(15938, LIGHT_PURPLE)
 
-        val file = File(dataFolder, "config.yml")
-        plugin.load(file)?.apply {
+        (load(File(dataFolder, "config.yml"))
+            ?: return logger.warning("Could not load configuration"))
+        .apply {
 
             debug = getBoolean("debug", false)
-            for(key in keys) {
-                if(key == "debug") continue
 
-                getSection(key).apply section@{
+            fun init(key: String) = getSection(key).apply section@{
 
-                    val enabled = getBoolean("enabled", true)
-                    if(!enabled) return@section
-                    val name = getString("name", "MyProxy")
-                    val port = getInt("port", 25598)
-                    val password = getString("password", "mypassword")
+                val enabled = getBoolean("enabled", true)
+                if(!enabled) return@section
+                val name = getString("name", "MyProxy")
+                val port = getInt("port", 25598)
+                val password = getString("password", "mypassword")
 
-                    logger.info("Starting $name (#$key)...")
-                    when(getString("type", "server").lc){
-
-                        "server" -> SocketServer(server, name, port, password).apply {
-                            config.buffer = getInt("buffer", 100)
-                            config.timeout = getLong("timeout", 1000)
-                            config.security = when(getString("security", "aes")){
-                                "none" -> 0; "aes" -> 1; "rsa" -> 2
-                                else -> logger.info(
-                                    "Unknown security for $name." +
-                                    "Accepted: none, aes, rsa"
-                                ).let{1}
-                            }
-                            sockets[key] = this
-                            start()
-                            logger.info("Successfully started server $name (#$key)")
-                            SocketEvent.Bungee.Server.Enabled().also {
-                                it.socket = this
-                                it.key = key
-                                ProxyServer.getInstance().pluginManager.callEvent(it)
-                            }
-                        }
-
-                        "client" -> {
-                            val host = getString("host", "localhost").lc
-                            SocketClient(client, name, host, port, password).apply {
-                                config.buffer = getInt("buffer", 100)
-                                config.timeout = getLong("timeout", 1000)
-                                sockets[key] = this
-                                start()
-                                logger.info("Successfully started client $name (#$key)")
-                                SocketEvent.Bungee.Client.Enabled().also {
-                                    it.socket = this
-                                    it.key = key
-                                    ProxyServer.getInstance().pluginManager.callEvent(it)
-                                }
-                            }
-                        }
+                fun mkserver() = SocketServer(socketServer, name, port, password)
+                .apply {
+                    config.buffer = getInt("buffer", 100)
+                    config.timeout = getLong("timeout", 1000)
+                    config.security = when(getString("security", "aes")){
+                        "none" -> 0; "aes" -> 1; "rsa" -> 2
+                        else -> logger.info(
+                                "Unknown security for $name." +
+                                        "Accepted: none, aes, rsa"
+                        ).let{1}
+                    }
+                    sockets[key] = this
+                    start()
+                    logger.info("Successfully started server $name (#$key)")
+                    SocketEvent.Bungee.Server.Enabled().also {
+                        it.socket = this
+                        it.key = key
+                        ProxyServer.getInstance().pluginManager.callEvent(it)
                     }
                 }
-            }
-        } ?: logger.warning("Could not load configuration")
-    }
 
-    fun bukkit(plugin: Sockets4Bukkit){
-
-        this.plugin = plugin
-        plugin.update(15938, LIGHT_PURPLE)
-        logger = plugin.logger
-        dataFolder = plugin.dataFolder
-
-        val file = File(dataFolder, "config.yml")
-        plugin.load(file)?.apply {
-            debug = getBoolean("debug", false)
-
-            for (key in getKeys(false)) {
-                if(key == "debug") continue
-
-                getConfigurationSection(key).apply section@{
-
-                    val enabled = getBoolean("enabled", true)
-                    if(!enabled) return@section
-                    val name = getString("name", "MyBukkit")
-                    val port = getInt("port", 25598)
-                    val password = getString("password", "mypassword")
-
-                    logger.info("Starting $name (#$key)...")
-                    when(getString("type", "server").lc){
-
-                        "server" -> SocketServer(server, name, port, password).apply {
-                            config.buffer = getInt("buffer", 100)
-                            config.timeout = getLong("timeout", 1000)
-                            config.security = when(getString("security", "aes")){
-                                "none" -> 0; "aes" -> 1; "rsa" -> 2
-                                else -> logger.info(
-                                    "Unknown security for $name." +
-                                    "Accepted: none, aes, rsa"
-                                ).let{1}
-                            }
-                            sockets[key] = this
-                            start()
-                            logger.info("Successfully started server $name (#$key)")
-                            SocketEvent.Bukkit.Server.Enabled().also {
-                                it.socket = this
-                                it.key = key
-                                Bukkit.getPluginManager().callEvent(it)
-                            }
-                        }
-
-                        "client" -> {
-                            val host = getString("host", "localhost").lc
-                            SocketClient(client, name, host, port, password).apply {
-                                config.buffer = getInt("buffer", 100)
-                                config.timeout = getLong("timeout", 1000)
-                                sockets[key] = this
-                                start()
-                                logger.info("Successfully started client $name (#$key)")
-                                SocketEvent.Bukkit.Client.Enabled().also {
-                                    it.socket = this
-                                    it.key = key
-                                    Bukkit.getPluginManager().callEvent(it)
-                                }
-                            }
-                        }
+                fun mkclient() = SocketClient(socketClient, name, getString("host", "localhost").lc, port, password)
+                .apply {
+                    config.buffer = getInt("buffer", 100)
+                    config.timeout = getLong("timeout", 1000)
+                    sockets[key] = this
+                    start()
+                    logger.info("Successfully started client $name (#$key)")
+                    SocketEvent.Bungee.Client.Enabled().also {
+                        it.socket = this
+                        it.key = key
+                        ProxyServer.getInstance().pluginManager.callEvent(it)
                     }
                 }
-            }
-        } ?: logger.warning("Could not load configuration")
-    }
 
-    val server = object: SocketApp.Server(){
-
-        override fun run(runnable: Runnable){
-            val plugin = plugin
-            when(plugin){
-                is BukkitPlugin -> Bukkit.getScheduler().runTaskAsynchronously(plugin, runnable)
-                is BungeePlugin -> ProxyServer.getInstance().scheduler.runAsync(plugin, runnable)
+                logger.info("Starting $name (#$key)...")
+                when(getString("type", "server").lc)
+                {"server" -> mkserver(); "client" -> mkclient() }
             }
+
+            for(key in keys) if(key != "debug") init(key)
+
         }
+    }.let{Unit}
 
-        override fun log(err: String){ if(debug) logger.info(err) }
+    fun bukkit(plugin: Sockets4Bukkit) = plugin.apply{
 
-        override fun onMessage(mess: SocketMessenger, map: JSONMap) {
-            when(plugin) {
-                is BukkitPlugin -> SocketEvent.Bukkit.Server.Message().apply {
+        update(15938, LIGHT_PURPLE)
+
+        (load(File(dataFolder, "config.yml"))
+            ?: return logger.warning("Could not load configuration"))
+        .apply {
+
+            debug = getBoolean("debug", false)
+
+            fun init(key: String) = getConfigurationSection(key).apply section@{
+
+                val enabled = getBoolean("enabled", true)
+                if(!enabled) return@section
+                val name = getString("name", "MyBukkit")
+                val port = getInt("port", 25598)
+                val password = getString("password", "mypassword")
+
+                fun mkserver() = SocketServer(socketServer, name, port, password)
+                .apply {
+                    config.buffer = getInt("buffer", 100)
+                    config.timeout = getLong("timeout", 1000)
+                    config.security = when(getString("security", "aes")){
+                        "none" -> 0; "aes" -> 1; "rsa" -> 2
+                        else -> logger.info(
+                                "Unknown security for $name." +
+                                        "Accepted: none, aes, rsa"
+                        ).let{1}
+                    }
+                    sockets[key] = this
+                    start()
+                    logger.info("Successfully started server $name (#$key)")
+                    SocketEvent.Bukkit.Server.Enabled().also {
+                        it.socket = this
+                        it.key = key
+                        Bukkit.getPluginManager().callEvent(it)
+                    }
+                }
+
+                fun mkclient() = SocketClient(socketClient, name, getString("host", "localhost").lc, port, password)
+                .apply {
+                    config.buffer = getInt("buffer", 100)
+                    config.timeout = getLong("timeout", 1000)
+                    sockets[key] = this
+                    start()
+                    logger.info("Successfully started client $name (#$key)")
+                    SocketEvent.Bukkit.Client.Enabled().also {
+                        it.socket = this
+                        it.key = key
+                        Bukkit.getPluginManager().callEvent(it)
+                    }
+                }
+
+                logger.info("Starting $name (#$key)...")
+                when(getString("type", "server").lc)
+                    {"server" -> mkserver(); "client" -> mkclient() }
+            }
+
+            for (key in getKeys(false)) if(key != "debug") init(key)
+
+        }
+    }.let{Unit}
+
+    val BukkitPlugin.socketServer get() = run here@{
+        object: SocketApp.Server() {
+
+            override fun run(runnable: Runnable) {
+                Bukkit.getScheduler().runTaskAsynchronously(this@here, runnable)
+            }
+
+            override fun log(err: String){ if(debug) logger.info(err) }
+
+            override fun onMessage(mess: SocketMessenger, map: JSONMap) {
+                SocketEvent.Bukkit.Server.Message().apply {
                     messenger = mess
                     message = map
                     channel = map.getExtra<String>("channel") ?: "unknown"
                     Bukkit.getPluginManager().callEvent(this)
                 }
-                is BungeePlugin -> SocketEvent.Bungee.Server.Message().apply {
+            }
+
+            override fun onConnect(mess: SocketMessenger){
+                SocketEvent.Bukkit.Server.Connected().apply {
+                    messenger = mess
+                    Bukkit.getPluginManager().callEvent(this)
+                }
+            }
+
+            override fun onHandshake(mess: SocketMessenger, name: String){
+                SocketEvent.Bukkit.Server.Handshake().apply {
+                    messenger = mess
+                    Bukkit.getPluginManager().callEvent(this)
+                }
+            }
+
+            override fun onDisconnect(mess: SocketMessenger){
+                SocketEvent.Bukkit.Server.Disconnected().apply {
+                    messenger = mess
+                    Bukkit.getPluginManager().callEvent(this)
+                }
+            }
+        }
+    }
+
+    val BungeePlugin.socketServer get() = run here@{
+        object : SocketApp.Server() {
+
+            override fun run(runnable: Runnable) {
+                ProxyServer.getInstance().scheduler.runAsync(this@here, runnable)
+            }
+
+            override fun log(err: String) {
+                if (debug) logger.info(err)
+            }
+
+            override fun onMessage(mess: SocketMessenger, map: JSONMap) {
+                SocketEvent.Bungee.Server.Message().apply {
                     messenger = mess
                     message = map
                     channel = map.getExtra<String>("channel") ?: "unknown"
                     ProxyServer.getInstance().pluginManager.callEvent(this)
                 }
             }
-        }
 
-        override fun onConnect(mess: SocketMessenger){
-            when(plugin) {
-                is BukkitPlugin -> SocketEvent.Bukkit.Server.Connected().apply {
-                    messenger = mess
-                    Bukkit.getPluginManager().callEvent(this)
-                }
-                is BungeePlugin -> SocketEvent.Bungee.Server.Connected().apply {
+            override fun onConnect(mess: SocketMessenger) {
+                SocketEvent.Bungee.Server.Connected().apply {
                     messenger = mess
                     ProxyServer.getInstance().pluginManager.callEvent(this)
                 }
             }
-        }
 
-        override fun onHandshake(mess: SocketMessenger, name: String){
-            when(plugin) {
-                is BukkitPlugin -> SocketEvent.Bukkit.Server.Handshake().apply {
-                    messenger = mess
-                    Bukkit.getPluginManager().callEvent(this)
-                }
-                is BungeePlugin -> SocketEvent.Bungee.Server.Handshake().apply {
+            override fun onHandshake(mess: SocketMessenger, name: String) {
+                SocketEvent.Bungee.Server.Handshake().apply {
                     messenger = mess
                     ProxyServer.getInstance().pluginManager.callEvent(this)
                 }
             }
-        }
 
-        override fun onDisconnect(mess: SocketMessenger){
-            when(plugin) {
-                is BukkitPlugin -> SocketEvent.Bukkit.Server.Disconnected().apply {
-                    messenger = mess
-                    Bukkit.getPluginManager().callEvent(this)
-                }
-                is BungeePlugin -> SocketEvent.Bungee.Server.Disconnected().apply {
+            override fun onDisconnect(mess: SocketMessenger) {
+                SocketEvent.Bungee.Server.Disconnected().apply {
                     messenger = mess
                     ProxyServer.getInstance().pluginManager.callEvent(this)
                 }
@@ -261,73 +270,88 @@ object Sockets4MC {
         }
     }
 
-    val client = object: SocketApp.Client(){
+    val BukkitPlugin.socketClient get() = run here@ {
+        object : SocketApp.Client() {
 
-        override fun run(runnable: Runnable){
-            val plugin = plugin
-            when(plugin){
-                is BukkitPlugin -> Bukkit.getScheduler().runTaskAsynchronously(plugin, runnable)
-                is BungeePlugin -> ProxyServer.getInstance().scheduler.runAsync(plugin, runnable)
+            override fun run(runnable: Runnable) {
+                Bukkit.getScheduler().runTaskAsynchronously(this@here, runnable)
             }
+
+            override fun log(err: String) {
+                if (debug) logger.info(err)
+            }
+
+            override fun onMessage(client: SocketClient, map: JSONMap) {
+                SocketEvent.Bukkit.Client.Message().apply {
+                    this.client = client
+                    message = map
+                    channel = map.getExtra<String>("channel") ?: "unknown"
+                    Bukkit.getPluginManager().callEvent(this)
+                }
+            }
+
+            override fun onConnect(client: SocketClient) {
+                SocketEvent.Bukkit.Client.Connected().apply {
+                    this.client = client
+                    Bukkit.getPluginManager().callEvent(this)
+                }
+            }
+
+            override fun onHandshake(client: SocketClient) {
+                SocketEvent.Bukkit.Client.Handshake().apply {
+                    this.client = client
+                    Bukkit.getPluginManager().callEvent(this)
+                }
+            }
+
+            override fun onDisconnect(client: SocketClient) {
+                SocketEvent.Bukkit.Client.Disconnected().apply {
+                    this.client = client
+                    Bukkit.getPluginManager().callEvent(this)
+                }
+            }
+        }
+    }
+
+    val BungeePlugin.socketClient get() = run here@{
+        object: SocketApp.Client(){
+
+        override fun run(runnable: Runnable) {
+            ProxyServer.getInstance().scheduler.runAsync(this@here, runnable)
         }
 
         override fun log(err: String){ if(debug) logger.info(err) }
 
         override fun onMessage(client: SocketClient, map: JSONMap) {
-            when(plugin) {
-                is BukkitPlugin -> SocketEvent.Bukkit.Client.Message().apply {
-                    this.client = client
-                    message = map
-                    channel = map.getExtra<String>("channel") ?: "unknown"
-                    Bukkit.getPluginManager().callEvent(this)
-                }
-                is BungeePlugin -> SocketEvent.Bungee.Client.Message().apply {
-                    this.client = client
-                    message = map
-                    channel = map.getExtra<String>("channel") ?: "unknown"
-                    ProxyServer.getInstance().pluginManager.callEvent(this)
-                }
+            SocketEvent.Bungee.Client.Message().apply {
+                this.client = client
+                message = map
+                channel = map.getExtra<String>("channel") ?: "unknown"
+                ProxyServer.getInstance().pluginManager.callEvent(this)
             }
         }
 
         override fun onConnect(client: SocketClient){
-            when(plugin) {
-                is BukkitPlugin -> SocketEvent.Bukkit.Client.Connected().apply {
-                    this.client = client
-                    Bukkit.getPluginManager().callEvent(this)
-                }
-                is BungeePlugin -> SocketEvent.Bungee.Client.Connected().apply {
-                    this.client = client
-                    ProxyServer.getInstance().pluginManager.callEvent(this)
-                }
+            SocketEvent.Bungee.Client.Connected().apply {
+                this.client = client
+                ProxyServer.getInstance().pluginManager.callEvent(this)
             }
         }
 
         override fun onHandshake(client: SocketClient){
-            when(plugin) {
-                is BukkitPlugin -> SocketEvent.Bukkit.Client.Handshake().apply {
-                    this.client = client
-                    Bukkit.getPluginManager().callEvent(this)
-                }
-                is BungeePlugin -> SocketEvent.Bungee.Client.Handshake().apply {
-                    this.client = client
-                    ProxyServer.getInstance().pluginManager.callEvent(this)
-                }
+            SocketEvent.Bungee.Client.Handshake().apply {
+                this.client = client
+                ProxyServer.getInstance().pluginManager.callEvent(this)
             }
         }
 
         override fun onDisconnect(client: SocketClient){
-            when(plugin) {
-                is BukkitPlugin -> SocketEvent.Bukkit.Client.Disconnected().apply {
-                    this.client = client
-                    Bukkit.getPluginManager().callEvent(this)
-                }
-                is BungeePlugin -> SocketEvent.Bungee.Client.Disconnected().apply {
-                    this.client = client
-                    ProxyServer.getInstance().pluginManager.callEvent(this)
-                }
+            SocketEvent.Bungee.Client.Disconnected().apply {
+                this.client = client
+                ProxyServer.getInstance().pluginManager.callEvent(this)
             }
         }
+    }
     }
 
 }
@@ -851,3 +875,5 @@ fun <T,U> listener(callable: BiConsumer<T, U>): Function2<T, U, Unit> = { t, u -
 fun <T,U,V> listener(callable: TriConsumer<T, U, V>): Function3<T, U, V, Unit> = { t, u, v -> callable.accept(t, u, v); Unit }
 
 val String.lc get() = toLowerCase()
+
+operator fun File.get(key: String) = File(this, key)
