@@ -57,8 +57,7 @@ object Sockets4MC {
             is SocketClient -> it.interrupt()
             is SocketServer -> it.close()
         }
-        sockets.clear()
-    }
+    }.also { sockets.clear() }
 
     fun bungee(plugin: Sockets4Bungee) = plugin.apply{
 
