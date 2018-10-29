@@ -1,37 +1,13 @@
 package fr.rhaz.minecraft.sockets
 
 import BukkitEvent
-import TriConsumer
-import com.google.gson.JsonParser
+import fr.rhaz.minecraft.kotlin.*
 import fr.rhaz.sockets.*
-import net.md_5.bungee.api.ChatColor
 import net.md_5.bungee.api.ChatColor.LIGHT_PURPLE
-import net.md_5.bungee.api.CommandSender
 import net.md_5.bungee.api.ProxyServer
-import net.md_5.bungee.api.chat.ClickEvent
-import net.md_5.bungee.api.chat.TextComponent
-import net.md_5.bungee.api.event.PostLoginEvent
-import net.md_5.bungee.config.Configuration
-import net.md_5.bungee.config.ConfigurationProvider
 import org.bukkit.Bukkit
-import org.bukkit.configuration.file.YamlConfiguration
-import org.bukkit.event.player.PlayerJoinEvent
 import java.io.File
-import java.io.IOException
-import java.io.InputStreamReader
-import java.net.URL
-import java.nio.file.Files
 import java.util.concurrent.TimeUnit
-import java.util.function.BiConsumer
-import java.util.function.Consumer
-import net.md_5.bungee.api.plugin.Event as BungeeEvent
-import net.md_5.bungee.api.plugin.Listener as BungeeListener
-import net.md_5.bungee.api.plugin.Plugin as BungeePlugin
-import net.md_5.bungee.config.YamlConfiguration as BungeeYaml
-import net.md_5.bungee.event.EventHandler as BungeeEventHandler
-import org.bukkit.event.EventHandler as BukkitEventHandler
-import org.bukkit.event.Listener as BukkitListener
-import org.bukkit.plugin.java.JavaPlugin as BukkitPlugin
 
 open class Sockets4Bukkit: BukkitPlugin() {
     override fun onEnable() {
@@ -194,11 +170,11 @@ object Sockets4MC {
 
             override fun log(err: String){ if(debug) logger.info(err) }
 
-            override fun onMessage(mess: SocketMessenger, map: JSONMap) {
+            override fun onMessage(mess: SocketMessenger, map: jsonMap) {
                 SocketEvent.Bukkit.Server.Message().apply {
                     messenger = mess
                     message = map
-                    channel = map.getExtra<String>("channel") ?: "unknown"
+                    channel = map["channel"] as? String ?: "unknown"
                     Bukkit.getPluginManager().callEvent(this)
                 }
             }
@@ -238,11 +214,11 @@ object Sockets4MC {
                 if (debug) logger.info(err)
             }
 
-            override fun onMessage(mess: SocketMessenger, map: JSONMap) {
+            override fun onMessage(mess: SocketMessenger, map: jsonMap) {
                 SocketEvent.Bungee.Server.Message().apply {
                     messenger = mess
                     message = map
-                    channel = map.getExtra<String>("channel") ?: "unknown"
+                    channel = map["channel"] as? String ?: "unknown"
                     ProxyServer.getInstance().pluginManager.callEvent(this)
                 }
             }
@@ -282,11 +258,11 @@ object Sockets4MC {
                 if (debug) logger.info(err)
             }
 
-            override fun onMessage(client: SocketClient, map: JSONMap) {
+            override fun onMessage(client: SocketClient, map: jsonMap) {
                 SocketEvent.Bukkit.Client.Message().apply {
                     this.client = client
                     message = map
-                    channel = map.getExtra<String>("channel") ?: "unknown"
+                    channel = map["channel"] as? String ?: "unknown"
                     Bukkit.getPluginManager().callEvent(this)
                 }
             }
@@ -324,11 +300,11 @@ object Sockets4MC {
 
             override fun log(err: String){ if(debug) logger.info(err) }
 
-            override fun onMessage(client: SocketClient, map: JSONMap) {
+            override fun onMessage(client: SocketClient, map: jsonMap) {
                 SocketEvent.Bungee.Client.Message().apply {
                     this.client = client
                     message = map
-                    channel = map.getExtra<String>("channel") ?: "unknown"
+                    channel = map["channel"] as? String ?: "unknown"
                     ProxyServer.getInstance().pluginManager.callEvent(this)
                 }
             }
@@ -375,7 +351,7 @@ interface SocketEvent {
             }
             open class Message: Server(Type.message){
                 lateinit var messenger: SocketMessenger
-                lateinit var message: JSONMap
+                lateinit var message: jsonMap
                 lateinit var channel: String
             }
             open class Connected: Server(Type.connected){
@@ -396,7 +372,7 @@ interface SocketEvent {
             }
             open class Message: Client(Type.message){
                 lateinit var client: SocketClient
-                lateinit var message: JSONMap
+                lateinit var message: jsonMap
                 lateinit var channel: String
             }
             open class Connected: Client(Type.connected){
@@ -422,7 +398,7 @@ interface SocketEvent {
             }
             open class Message: Server(Type.message){
                 lateinit var messenger: SocketMessenger
-                lateinit var message: JSONMap
+                lateinit var message: jsonMap
                 lateinit var channel: String
             }
             open class Connected: Server(Type.connected){
@@ -443,7 +419,7 @@ interface SocketEvent {
             }
             open class Message: Client(Type.message){
                 lateinit var client: SocketClient
-                lateinit var message: JSONMap
+                lateinit var message: jsonMap
                 lateinit var channel: String
             }
             open class Connected: Client(Type.connected){
@@ -535,7 +511,7 @@ fun onClientEnable(plugin: BukkitPlugin, key: String, listener: SocketClient.() 
     }.also { plugin.server.pluginManager.registerEvents(it, plugin) }
 }
 
-fun SocketClient.onMessage(plugin: BungeePlugin, listener: SocketClient.(String, JSONMap) -> Unit): BungeeListener{
+fun SocketClient.onMessage(plugin: BungeePlugin, listener: SocketClient.(String, jsonMap) -> Unit): BungeeListener{
     val socket = this;
     return object:BungeeListener{
         @BungeeEventHandler
@@ -546,7 +522,7 @@ fun SocketClient.onMessage(plugin: BungeePlugin, listener: SocketClient.(String,
     }.also { plugin.proxy.pluginManager.registerListener(plugin, it) }
 }
 
-fun SocketClient.onMessage(plugin: BungeePlugin, channel: String, listener: SocketClient.(JSONMap) -> Unit): BungeeListener{
+fun SocketClient.onMessage(plugin: BungeePlugin, channel: String, listener: SocketClient.(jsonMap) -> Unit): BungeeListener{
     val socket = this;
     return object:BungeeListener{
         @BungeeEventHandler
@@ -591,7 +567,7 @@ fun SocketClient.onDisconnect(plugin: BungeePlugin, listener: SocketClient.() ->
     }.also { plugin.proxy.pluginManager.registerListener(plugin, it) }
 }
 
-fun SocketClient.onMessage(plugin: BukkitPlugin, listener: SocketClient.(String, JSONMap) -> Unit): BukkitListener{
+fun SocketClient.onMessage(plugin: BukkitPlugin, listener: SocketClient.(String, jsonMap) -> Unit): BukkitListener{
     val socket = this
     return object: BukkitListener{
         @BukkitEventHandler
@@ -602,7 +578,7 @@ fun SocketClient.onMessage(plugin: BukkitPlugin, listener: SocketClient.(String,
     }.also { plugin.server.pluginManager.registerEvents(it, plugin) }
 }
 
-fun SocketClient.onMessage(plugin: BukkitPlugin, channel: String, listener: SocketClient.(JSONMap) -> Unit){
+fun SocketClient.onMessage(plugin: BukkitPlugin, channel: String, listener: SocketClient.(jsonMap) -> Unit){
     val socket = this
     plugin.server.pluginManager.registerEvents(object: BukkitListener{
         @BukkitEventHandler
@@ -692,7 +668,7 @@ fun SocketServer.onDisconnect(plugin: BukkitPlugin, listener: SocketMessenger.(S
     }.also { plugin.server.pluginManager.registerEvents(it, plugin) }
 }
 
-fun SocketMessenger.onMessage(plugin: BukkitPlugin, listener: SocketMessenger.(String, JSONMap) -> Unit): BukkitListener {
+fun SocketMessenger.onMessage(plugin: BukkitPlugin, listener: SocketMessenger.(String, jsonMap) -> Unit): BukkitListener {
     val mess = this
     return object: BukkitListener{
         @BukkitEventHandler
@@ -703,7 +679,7 @@ fun SocketMessenger.onMessage(plugin: BukkitPlugin, listener: SocketMessenger.(S
     }.also { plugin.server.pluginManager.registerEvents(it, plugin) }
 }
 
-fun SocketMessenger.onMessage(plugin: BukkitPlugin, channel: String, listener: SocketMessenger.(JSONMap) -> Unit): BukkitListener {
+fun SocketMessenger.onMessage(plugin: BukkitPlugin, channel: String, listener: SocketMessenger.(jsonMap) -> Unit): BukkitListener {
     val mess = this
     return object: BukkitListener{
         @BukkitEventHandler
@@ -760,7 +736,7 @@ fun SocketServer.onDisconnect(plugin: BungeePlugin, listener: SocketMessenger.(S
     }.also { plugin.proxy.pluginManager.registerListener(plugin, it) }
 }
 
-fun SocketMessenger.onMessage(plugin: BungeePlugin, listener: SocketMessenger.(String, JSONMap) -> Unit): BungeeListener{
+fun SocketMessenger.onMessage(plugin: BungeePlugin, listener: SocketMessenger.(String, jsonMap) -> Unit): BungeeListener{
     val mess = this
     return object: BungeeListener{
         @BungeeEventHandler
@@ -771,7 +747,7 @@ fun SocketMessenger.onMessage(plugin: BungeePlugin, listener: SocketMessenger.(S
     }.also { plugin.proxy.pluginManager.registerListener(plugin, it) }
 }
 
-fun SocketMessenger.onMessage(plugin: BungeePlugin, channel: String, listener: SocketMessenger.(JSONMap) -> Unit): BungeeListener{
+fun SocketMessenger.onMessage(plugin: BungeePlugin, channel: String, listener: SocketMessenger.(jsonMap) -> Unit): BungeeListener{
     val mess = this
     return object: BungeeListener{
         @BungeeEventHandler
@@ -782,101 +758,3 @@ fun SocketMessenger.onMessage(plugin: BungeePlugin, channel: String, listener: S
         }
     }.also { plugin.proxy.pluginManager.registerListener(plugin, it) }
 }
-
-val BungeePlugin.provider get() = ConfigurationProvider.getProvider(BungeeYaml::class.java)
-fun BungeePlugin.load(file: File) = try {
-    if (!dataFolder.exists()) dataFolder.mkdir()
-    val res = file.nameWithoutExtension+"/bungee.yml"
-    if (!file.exists()) Files.copy(getResourceAsStream(res), file.toPath())
-    provider.load(file)
-} catch (e: IOException){ e.printStackTrace(); null }
-fun BungeePlugin.save(config: Configuration, file: File) = provider.save(config, file)
-
-fun BukkitPlugin.load(file: File): YamlConfiguration? {
-    if (!file.parentFile.exists()) file.parentFile.mkdir()
-    val res = file.nameWithoutExtension+"/bukkit.yml"
-    if (!file.exists()) Files.copy(getResource(res), file.toPath())
-    return YamlConfiguration.loadConfiguration(file) ?: null;
-}
-
-fun CommandSender.msg(msg: String) = msg(text(msg))
-fun CommandSender.msg(text: TextComponent) = sendMessage(text)
-fun text(string: String) = TextComponent(string.replace("&", "§"))
-
-fun spiget(id: Int, callback: (String) -> Unit) = Thread {
-    try {
-        val base = "https://api.spiget.org/v2/resources/"
-        val conn = URL("$base$id/versions?size=100").openConnection()
-        val json = InputStreamReader(conn.inputStream).let { JsonParser().parse(it).asJsonArray }
-        callback(json.last().asJsonObject["name"].asString)
-    } catch (e: IOException){}
-}.start()
-
-infix fun String.newerThan(v: String): Boolean = false.also{
-    val s1 = split('.');
-    val s2 = v.split('.');
-    for(i in 0..Math.max(s1.size,s2.size)){
-        if(i !in s1.indices) return false;
-        if(i !in s2.indices) return true;
-        if(s1[i].toInt() > s2[i].toInt()) return true;
-        if(s1[i].toInt() < s2[i].toInt()) return false;
-    }
-}
-
-fun BukkitPlugin.update(id: Int, color: ChatColor) = spiget(id) here@{
-
-    if(!(it newerThan description.version)) return@here;
-
-    val message = text("An update is available for ${description.name}!").apply {
-        val url = "https://www.spigotmc.org/resources/$id"
-        text += " Download it here: $url"
-        this.color = color
-        clickEvent = ClickEvent(ClickEvent.Action.OPEN_URL, url)
-    }
-
-    server.scheduler.runTaskLater(this, {
-        server.consoleSender.spigot().sendMessage(message);
-    }, 0)
-
-    server.pluginManager.registerEvents(object: BukkitListener {
-        @BukkitEventHandler
-        fun onJoin(e: PlayerJoinEvent) {
-            if(e.player.hasPermission("rhaz.update"))
-                e.player.spigot().sendMessage(message)
-        }
-    }, this)
-}
-
-fun BungeePlugin.update(id: Int, color: ChatColor) = spiget(id) here@{
-
-    if(!(it newerThan description.version)) return@here;
-
-    val message = text("An update is available for ${description.name}!").apply {
-        val url = "https://www.spigotmc.org/resources/$id"
-        text += " Download it here: $url"
-        this.color = color
-        clickEvent = ClickEvent(ClickEvent.Action.OPEN_URL, url)
-    }
-
-    proxy.scheduler.schedule(this, {
-        proxy.console.sendMessage(message);
-    }, 0, TimeUnit.SECONDS)
-
-    proxy.pluginManager.registerListener(this, object : BungeeListener {
-        @BungeeEventHandler
-        fun onJoin(e: PostLoginEvent) {
-            if (e.player.hasPermission("rhaz.update"))
-                e.player.sendMessage(message)
-        }
-    })
-}
-
-val unit = Unit
-
-fun <T> listener(callable: Consumer<T>): Function1<T, Unit> = { t -> callable.accept(t); Unit }
-fun <T,U> listener(callable: BiConsumer<T, U>): Function2<T, U, Unit> = { t, u -> callable.accept(t, u); Unit }
-fun <T,U,V> listener(callable: TriConsumer<T, U, V>): Function3<T, U, V, Unit> = { t, u, v -> callable.accept(t, u, v); Unit }
-
-val String.lc get() = toLowerCase()
-
-operator fun File.get(key: String) = File(this, key)

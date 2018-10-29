@@ -26,7 +26,7 @@ onServerEnable(plugin){
     onHandshake(plugin){
         write("MyChannel", "What is the answer to life?")
         onMessage(plugin, "MyChannel"){
-            val answer = it.getExtra<String>("data")
+            val answer = it["data"] as? String
             logger.info("The answer to life is $answer")
         }
     }
@@ -35,7 +35,7 @@ onServerEnable(plugin){
 // Client-side
 onClientEnable(plugin){
     onMessage(plugin, "MyChannel"){
-        val data = it.getExtra<String>("data")
+        val data = it["data"] as? String
         if(data == "What is the answer to life?")
             write("MyChannel", "42")
     }
@@ -53,7 +53,7 @@ onServerEnable(plugin, listener((socket) -> {
         messenger.write("MyChannel", "What is the answer to life?");
         onMessage(messenger, plugin, "MyChannel", listener(
           (messenger2, msg) -> {
-            String answer = msg.getExtra("data");
+            String answer = (String) msg.get("data");
             getLogger().info("The answer to life is "+answer);
           }
         ));
@@ -64,7 +64,7 @@ onServerEnable(plugin, listener((socket) -> {
 onClientEnable(plugin, listener((socket) -> {
     onMessage(socket, plugin, "MyChannel", listener(
         (socket2, msg) -> {
-            String data = msg.getExtra("data");
+            String data = (String) msg.get("data");
             if(data == null) return;
             if(data.equals("What is the answer to life?"))
                 socket.write("MyChannel", "42");
@@ -88,7 +88,7 @@ onClientEnable(plugin, listener((socket) -> {
       }
 
       dependencies {
-          compileOnly("fr.rhaz.minecraft:sockets4mc:4.0.8.3")
+          compileOnly("fr.rhaz.minecraft:sockets4mc:4.0.9")
       }
 
 - Gradle: add this to your build.gradle
@@ -98,7 +98,7 @@ onClientEnable(plugin, listener((socket) -> {
       }
 
       dependencies {
-          compileOnly 'fr.rhaz.minecraft:sockets4mc:4.0.8.3'
+          compileOnly 'fr.rhaz.minecraft:sockets4mc:4.0.9'
       }
 
 
@@ -115,7 +115,7 @@ onClientEnable(plugin, listener((socket) -> {
         <dependency>
             <groupId>fr.rhaz.minecraft</groupId>
             <artifactId>sockets4mc</artifactId>
-            <version>4.0.8.3</version>
+            <version>4.0.9</version>
             <scope>provided</scope>
         </dependency>
       </dependencies>

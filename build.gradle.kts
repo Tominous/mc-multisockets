@@ -12,7 +12,7 @@ plugins {
 }
 
 group = "fr.rhaz.minecraft"
-version = "4.0.8.3"
+version = "4.0.9"
 val pname = "Sockets4MC"
 val desc = "No more Plugin Messaging Channels"
 
@@ -25,13 +25,13 @@ repositories {
 }
 
 dependencies {
-    compileOnly(kotlin("stdlib-jdk8"))
+    compileOnly("fr.rhaz.minecraft:kotlin4mc:2.0.7")
     compileOnly("net.md-5:bungeecord-api:1.13-SNAPSHOT")
     compileOnly("org.spigotmc:spigot-api:1.12.2-R0.1-SNAPSHOT")
     testCompileOnly(kotlin("stdlib-jdk8"))
     testCompileOnly("net.md-5:bungeecord-api:1.13-SNAPSHOT")
     testCompileOnly("org.spigotmc:spigot-api:1.12.2-R0.1-SNAPSHOT")
-    compile("fr.rhaz:sockets:3.0.6")
+    compile("fr.rhaz:sockets:3.0.7")
 }
 
 (tasks.getByName("processResources") as ProcessResources).apply {
@@ -51,7 +51,10 @@ val jar by tasks.getting(Jar::class) {
 }
 
 java.sourceSets {
-    getByName("main").java.srcDirs("src")
+    getByName("main").java {
+        srcDirs("src")
+        exclude("Kotlin4MC.kt")
+    }
     getByName("test").java.srcDirs("test")
 }
 
