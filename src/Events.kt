@@ -13,7 +13,7 @@ interface SocketEvent {
     val side: Side ; val type: Type
 
     open class Bukkit(
-            override val side: Side, override val type: Type
+        override val side: Side, override val type: Type
     ): SocketEvent, BukkitSocketEvent() {
 
         open class Server(override val type: Type): Bukkit(Side.server, type) {

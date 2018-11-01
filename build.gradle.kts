@@ -31,7 +31,7 @@ dependencies {
     testCompileOnly(kotlin("stdlib-jdk8"))
     testCompileOnly("net.md-5:bungeecord-api:1.13-SNAPSHOT")
     testCompileOnly("org.spigotmc:spigot-api:1.12.2-R0.1-SNAPSHOT")
-    compile("fr.rhaz:sockets:3.0.7")
+    compile("fr.rhaz:sockets:3.0.8")
 }
 
 (tasks.getByName("processResources") as ProcessResources).apply {

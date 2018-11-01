@@ -1,12 +1,11 @@
 @file:JvmName("Sockets4MC")
 @file:JvmMultifileClass
-
 package fr.rhaz.minecraft.sockets
 
 import fr.rhaz.minecraft.kotlin.*
 import fr.rhaz.sockets.*
 
-fun onClientEnable(plugin: BungeePlugin, listener: SocketClient.(String) -> Unit): BungeeListener{
+fun onSocketClientEnable(plugin: BungeePlugin, listener: SocketClient.(String) -> Unit): BungeeListener{
     return object:BungeeListener{
         @BungeeEventHandler
         fun onEnable(e: SocketEvent.Bungee.Client.Enabled){
@@ -15,7 +14,7 @@ fun onClientEnable(plugin: BungeePlugin, listener: SocketClient.(String) -> Unit
     }.also { plugin.proxy.pluginManager.registerListener(plugin, it) }
 }
 
-fun onServerEnable(plugin: BungeePlugin, listener: SocketServer.(String) -> Unit): BungeeListener{
+fun onSocketServerEnable(plugin: BungeePlugin, listener: SocketServer.(String) -> Unit): BungeeListener{
     return object:BungeeListener{
         @BungeeEventHandler
         fun onEnable(e: SocketEvent.Bungee.Server.Enabled){
@@ -24,7 +23,7 @@ fun onServerEnable(plugin: BungeePlugin, listener: SocketServer.(String) -> Unit
     }.also { plugin.proxy.pluginManager.registerListener(plugin, it) }
 }
 
-fun onServerEnable(plugin: BukkitPlugin, listener: SocketServer.(String) -> Unit): BukkitListener{
+fun onSocketServerEnable(plugin: BukkitPlugin, listener: SocketServer.(String) -> Unit): BukkitListener{
     return object:BukkitListener{
         @BukkitEventHandler
         fun onEnable(e: SocketEvent.Bukkit.Server.Enabled){
@@ -33,7 +32,7 @@ fun onServerEnable(plugin: BukkitPlugin, listener: SocketServer.(String) -> Unit
     }.also { plugin.server.pluginManager.registerEvents(it, plugin) }
 }
 
-fun onClientEnable(plugin: BukkitPlugin, listener: SocketClient.(String) -> Unit): BukkitListener{
+fun onSocketClientEnable(plugin: BukkitPlugin, listener: SocketClient.(String) -> Unit): BukkitListener{
     return object:BukkitListener{
         @BukkitEventHandler
         fun onEnable(e: SocketEvent.Bukkit.Client.Enabled){
@@ -42,7 +41,7 @@ fun onClientEnable(plugin: BukkitPlugin, listener: SocketClient.(String) -> Unit
     }.also { plugin.server.pluginManager.registerEvents(it, plugin) }
 }
 
-fun onClientEnable(plugin: BungeePlugin, key: String, listener: SocketClient.() -> Unit): BungeeListener{
+fun onSocketClientEnable(plugin: BungeePlugin, key: String, listener: SocketClient.() -> Unit): BungeeListener{
     return object:BungeeListener{
         @BungeeEventHandler
         fun onEnable(e: SocketEvent.Bungee.Client.Enabled){
@@ -52,7 +51,7 @@ fun onClientEnable(plugin: BungeePlugin, key: String, listener: SocketClient.() 
     }.also { plugin.proxy.pluginManager.registerListener(plugin, it) }
 }
 
-fun onServerEnable(plugin: BungeePlugin, key: String, listener: SocketServer.() -> Unit): BungeeListener{
+fun onSocketServerEnable(plugin: BungeePlugin, key: String, listener: SocketServer.() -> Unit): BungeeListener{
     return object:BungeeListener{
         @BungeeEventHandler
         fun onEnable(e: SocketEvent.Bungee.Server.Enabled){
@@ -62,7 +61,7 @@ fun onServerEnable(plugin: BungeePlugin, key: String, listener: SocketServer.() 
     }.also { plugin.proxy.pluginManager.registerListener(plugin, it) }
 }
 
-fun onServerEnable(plugin: BukkitPlugin, key: String, listener: SocketServer.() -> Unit): BukkitListener{
+fun onSocketServerEnable(plugin: BukkitPlugin, key: String, listener: SocketServer.() -> Unit): BukkitListener{
     return object:BukkitListener{
         @BukkitEventHandler
         fun onEnable(e: SocketEvent.Bukkit.Server.Enabled){
@@ -72,7 +71,7 @@ fun onServerEnable(plugin: BukkitPlugin, key: String, listener: SocketServer.() 
     }.also { plugin.server.pluginManager.registerEvents(it, plugin) }
 }
 
-fun onClientEnable(plugin: BukkitPlugin, key: String, listener: SocketClient.() -> Unit): BukkitListener{
+fun onSocketClientEnable(plugin: BukkitPlugin, key: String, listener: SocketClient.() -> Unit): BukkitListener{
     return object:BukkitListener{
         @BukkitEventHandler
         fun onEnable(e: SocketEvent.Bukkit.Client.Enabled){

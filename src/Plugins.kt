@@ -116,7 +116,6 @@ open class Sockets4Bungee: BungeePlugin() {
     }
 
     private fun SocketServer.mk(section: BungeeConfiguration, key: String){
-
         config.buffer = section.getInt("buffer", 100)
         config.timeout = section.getLong("timeout", 1000)
         val security = section.getString("security", "aes")
