@@ -7,7 +7,6 @@ import java.util.function.Consumer;
 // --- Java example of Bukkit plugin ---
 // Let's call our server Alice and our client Bob
 //
-import static fr.rhaz.minecraft.sockets.Sockets4MCKt.*; // Sockets4MC
 import fr.rhaz.sockets.*; // RHazSockets
 
 public class JavaTest extends JavaPlugin {

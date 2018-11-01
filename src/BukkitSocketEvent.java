@@ -1,7 +1,7 @@
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 
-public class BukkitEvent extends Event {
+public class BukkitSocketEvent extends Event {
     private static final HandlerList handlers = new HandlerList();
 
     public HandlerList getHandlers() {
