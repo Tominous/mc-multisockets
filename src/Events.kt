@@ -1,4 +1,4 @@
-package fr.rhaz.minecraft
+package fr.rhaz.minecraft.sockets
 
 import fr.rhaz.minecraft.kotlin.BungeeEvent
 import fr.rhaz.sockets.SocketClient

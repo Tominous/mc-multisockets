@@ -1,6 +1,6 @@
 @file:JvmName("Sockets4MC")
 @file:JvmMultifileClass
-package fr.rhaz.minecraft
+package fr.rhaz.minecraft.sockets
 
 import fr.rhaz.minecraft.kotlin.*
 import fr.rhaz.sockets.*
