@@ -1,17 +1,10 @@
-debug: false
 default:
-  type: client
   name: "MyBukkit"
-  host: "localhost"
-  port: 25595
+  port: 25591
   password: "mypassword"
+  bootstrap:
+    - localhost:25590
   # --- Extra options ---
-  #
-  # enabled: false
-  # if you want to disable this socket
-  #
-  # buffer: 100
-  # max length of a line
-  #
-  # timeout: 1000
-  # delay between each message sending/reading
+  # enabled: false # if you want to disable this socket
+  # discovery: false # if you want to disable automatic connection to others sockets
+  # timeout: 1000 # delay between each message reading

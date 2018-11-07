@@ -1,19 +1,13 @@
-debug: false
 default:
-  type: server
   name: "MyProxy"
-  port: 25595
+  port: 25590
   password: "mypassword"
+  bootstrap:
+    - localhost:25591
   # --- Extra options ---
   #
   # enabled: false
   # if you want to disable this socket
-  #
-  # security: "aes"
-  # can be [none, aes, rsa]
-  #
-  # buffer: 100
-  # max length of a line
   #
   # timeout: 1000
   # delay between each message sending/reading
