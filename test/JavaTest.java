@@ -1,3 +1,5 @@
+import net.md_5.bungee.api.connection.ProxiedPlayer;
+import net.md_5.bungee.api.plugin.Plugin;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -9,112 +11,85 @@ import java.util.function.Consumer;
 //
 import fr.rhaz.sockets.*; // RHazSockets
 
-public class JavaTest extends JavaPlugin {
-    @Override
-    public void onEnable() {
+import static fr.rhaz.minecraft.sockets.Sockets4MC.getSocket;
+import static fr.rhaz.minecraft.sockets.Sockets4MC.onSocketEnable;
+import static fr.rhaz.sockets.JsonKt.jsonMap;
 
-        JavaPlugin plugin = this;
+public class JavaTest{
 
-        // A socket may be a server or a client, depending on the configuration
-        // You need to implement both cases
+    public class BungeeTest extends Plugin{
 
-        // If it is a server
-        onServerEnable(plugin, /*key:*/ "default", listener(
-            // default socket in the S4MC configuration
-            (alice) -> { // So, Alice is the server
+        @Override public void onEnable() {
 
-                // And Bob is our target (we interact with him with a messenger)
-                // We use an atomic reference because it may be in another thread
-                AtomicReference<SocketMessenger> bob = new AtomicReference<>();
+            onSocketEnable(/*plugin*/ this, /*id*/ "default", (socket) -> {
 
-                // We listen for incoming connections from Bob
-                onHandshake(/*socket:*/ alice, plugin, /*name:*/ "Bob", listener(
+                getLogger().info("Socket #default is available");
 
-                        (/*Bob's messenger:*/ messenger) -> {
+                // When any connection is ready
+                socket.onReady(connection -> {
+                    getLogger().info("Connection to "+connection.getTargetName()+" is available");
+                    // Send a message over the channel "Test"
+                    connection.msg(/*channel*/ "Test", /*data*/ "How are you?");
+                });
 
-                            messenger.write("Test", "Hello world!");
-                            // We send him a message over the channel "Test" and the extra "data"
+                // When a message is received over the channel "Test"
+                socket.onMessage(/*channel*/ "Test", (connection, msg) -> {
+                    if(msg.get(/*key*/ "data").equals("It works fine!"))
+                    getLogger().info(connection.getTargetName()+" works fine!");
+                });
 
-                            // We listen for incoming messages from Bob's messenger over the channel "Test"
-                            onMessage(/*Bob's messenger:*/ messenger, this, "Test", listener(
+            });
+        }
 
-                                    (/*still Bob's messenger*/ messenger2, msg) -> {
+        public void sendInfo(ProxiedPlayer player) throws Exception {
+            String serverName = player.getServer().getInfo().getName();
 
-                                        String data = msg.getExtra("data");
-                                        // We retrieve the message from the "data" extra
+            MultiSocket socket = getSocket(/*id*/ "default");
+            if(socket == null) throw new Exception("Socket #default is not available");
 
-                                        if(data.equals("How are you?"))
-                                            messenger2.write("Test", "It works!");
-                                    }
-                            ));
+            Connection connection = socket.getConnection(/*target*/ serverName);
+            if(connection == null) throw new Exception("Connection to "+serverName+" is not available");
 
-                            bob.set(messenger);
-                            // We save Bob's messenger into a variable in order to use it later
-                            // Of course, you can save as many messengers as you want,
-                            // we use only one messenger for the example
-                        }
-                ));
-            }
-        ));
+            connection.msg(/*channel*/ "PlayerInfo", jsonMap(
+                /*key*/ "uuid", /*value*/ player.getUniqueId(),
+                /*key*/ "name", /*value*/ player.getName(),
+                /*key*/ "displayname", /*value*/ player.getDisplayName()
+            ));
+        }
+    }
 
-        // If it is a client
-        onClientEnable(plugin, "default", listener(
+    public class BukkitTest extends JavaPlugin{
 
-            (bob) -> { // Now we are in the Bob's context
+        @Override public void onEnable(){
+            onSocketEnable(/*plugin*/ this, /*id*/ "default", socket -> {
+                getLogger().info("Socket #default is available");
 
-                // A client is connected to one server,
-                // So it acts as a client and as a messenger to its server (Alice)
+                socket.onReady(connection -> {
+                    getLogger().info("Connection to "+connection.getTargetName()+" is available");
+                });
 
-                // We listen for incoming messages over the channel "Test"
-                onMessage(/*socket:*/ bob, plugin, /*channel:*/ "Test", listener(
+                socket.onMessage(/*channel*/ "Test", (connection, msg) -> {
+                    if(msg.get(/*key*/ "data").equals("How are you?"))
+                        connection.msg(/*channel*/ "Test", /*data*/ "It works fine!");
+                });
+            });
+        }
 
-                        (/*still Bob:*/ socket2, /*message:*/ msg) -> {
+        public void sendInfo(Player player) throws Exception {
+            String proxyName = "MyProxy";
 
-                            String data = msg.getExtra("data");
-                            if (data == null) return;
+            MultiSocket socket = getSocket(/*id*/ "default");
+            if(socket == null) throw new Exception("Socket #default is not available");
 
-                            if (data.equals("Hello world!"))
-                                bob.write("Test", "How are you?");
-                            // When using bob.write(), we are not writing to bob,
-                            // but we use the Bob's messenger to write to Alice
-                            // It may be confusing, remember that a client only has
-                            // one connection (to the server), so the client acts like
-                            // a messenger
+            Connection connection = socket.getConnection(/*target*/ proxyName);
+            if(connection == null) throw new Exception("Connection to "+proxyName+" is not available");
 
-                            if (data.equals("It works!"))
-                                getLogger().info("Yay! It works!");
-                        }
-                ));
-
-                // Register for ALL incoming messages to Bob (no matter what channel it is)
-                // and log them
-                onMessage(bob, plugin, listener(
-                    (/*still bob:*/ socket, channel, msg) -> {
-                        String data = msg.getExtra("data");
-                        getLogger().info(channel + ": " + data);
-                    }
-                ));
-
-                // Example function for sending multiple data
-                Consumer<Player> sendPlayerInfo = (player) -> {
-
-                    // Ensure the connection is ready
-                    if (!bob.getHandshaked()) return;
-                    if (!bob.getReady()) return;
-
-                    // JSONMap is an easy and beautiful way to write maps
-                    // using only commas to separate keys and value
-                    // Usage: new JSONMap(key, value, key, value, key, value, ...)
-                    bob.write("PlayerInfo", new JSONMap(
-                        "username", player.getName(),
-                        "displayname", player.getDisplayName(),
-                        "health", player.getHealth()
-                        // "world", "gamemode", "experience", ...
-                    ));
-                };
-                // You can call this function later with
-                // sendPlayerInfo.accept(getServer().getPlayer("Hazae41"));
-            }
-        ));
+            connection.msg(/*channel*/ "PlayerInfo", jsonMap(
+                /*key*/ "uuid", /*value*/ player.getUniqueId(),
+                /*key*/ "name", /*value*/ player.getName(),
+                /*key*/ "displayname", /*value*/ player.getDisplayName(),
+                /*key*/ "exp", /*value*/ player.getExp()
+            ));
+        }
     }
 }

@@ -6,7 +6,7 @@ import fr.rhaz.sockets.MultiSocket
 
 val sockets = mutableMapOf<String, MultiSocket>()
 
-fun getSocket(key: String) = sockets[key]
+fun getSocket(id: String) = sockets[id]
 
 fun disable(){
     sockets.values.forEach{it.interrupt()}
