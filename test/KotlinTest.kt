@@ -1,6 +1,3 @@
-
-// *** Example of BungeeCord plugin ***
-
 import fr.rhaz.minecraft.kotlin.* // Kotlin4MC
 import fr.rhaz.minecraft.sockets.* // Sockets4MC
 import fr.rhaz.sockets.* // Sockets.kt

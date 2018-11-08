@@ -1,19 +1,13 @@
+import fr.rhaz.sockets.Connection;
+import fr.rhaz.sockets.MultiSocket;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Plugin;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Consumer;
-
-// --- Java example of Bukkit plugin ---
-// Let's call our server Alice and our client Bob
-//
-import fr.rhaz.sockets.*; // RHazSockets
-
 import static fr.rhaz.minecraft.sockets.Sockets4MC.getSocket;
 import static fr.rhaz.minecraft.sockets.Sockets4MC.onSocketEnable;
-import static fr.rhaz.sockets.JsonKt.jsonMap;
+import static fr.rhaz.sockets.JsonKt.jsonMap; // Sockets.kt
 
 public class JavaTest{
 
