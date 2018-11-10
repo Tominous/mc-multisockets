@@ -1,5 +1,4 @@
-@file:JvmName("Sockets4MC")
-@file:JvmMultifileClass
+@file:JvmName("Sockets4Bukkit")
 package fr.rhaz.minecraft.sockets
 
 import fr.rhaz.minecraft.kotlin.*
@@ -8,9 +7,39 @@ import fr.rhaz.minecraft.kotlin.bukkit.ConfigSection
 import fr.rhaz.sockets.MultiSocket
 import net.md_5.bungee.api.ChatColor.LIGHT_PURPLE
 import org.bukkit.Bukkit
+import java.util.function.BiConsumer
+import java.util.function.Consumer
 
-lateinit var sockets4Bukkit: Sockets4Bukkit
-open class Sockets4Bukkit: BukkitPlugin() {
+fun BukkitPlugin.onSocketEnable(
+        listener: MultiSocket.(String) -> Unit
+) = listen<SocketEvent.Bukkit.Enabled>{
+    listener(it.socket, it.id)
+}
+
+fun BukkitPlugin.onSocketEnable(
+        listener: BiConsumer<MultiSocket, String>
+) = listen<SocketEvent.Bukkit.Enabled>{
+    listener.accept(it.socket, it.id)
+}
+
+fun BukkitPlugin.onSocketEnable(
+        id: String,
+        listener: MultiSocket.() -> Unit
+) = listen<SocketEvent.Bukkit.Enabled>{
+    if(it.id == id)
+        listener(it.socket)
+}
+
+fun BukkitPlugin.onSocketEnable(
+        id: String,
+        listener: Consumer<MultiSocket>
+) = listen<SocketEvent.Bukkit.Enabled>{
+    if(it.id == id)
+        listener.accept(it.socket)
+}
+
+lateinit var sockets4Bukkit: Sockets4BukkitPlugin
+open class Sockets4BukkitPlugin: BukkitPlugin() {
 
     override fun onEnable(){
         sockets4Bukkit = this
