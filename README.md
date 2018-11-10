@@ -21,23 +21,22 @@ This plugin uses [RHazSockets](https://github.com/RHazDev/RHazSockets)
 </h4>
 
 ```kotlin
-// Server-side
-onServerEnable(plugin){
-    onHandshake(plugin){
-        write("MyChannel", "What is the answer to life?")
-        onMessage(plugin, "MyChannel"){
-            val answer = it["data"] as? String
-            logger.info("The answer to life is $answer")
-        }
+// On one side
+onSocketEnable(id = "default"){
+    onReady{
+        msg(channel = "MyChannel", data = "What is the answer to life?")
+    }
+   onMessage(channel = "MyChannel"){ msg ->
+        val answer = msg["data"] as? String
+        logger.info("The answer to life is $answer")
     }
 }
 
-// Client-side
-onClientEnable(plugin){
-    onMessage(plugin, "MyChannel"){
-        val data = it["data"] as? String
-        if(data == "What is the answer to life?")
-            write("MyChannel", "42")
+// On other side
+onSocketEnable(id = "default"){
+    onMessage(channel = "MyChannel"){ msg ->
+        if(msg["data"] == "What is the answer to life?")
+            msg(channel = "MyChannel", data = "42")
     }
 }
 ```
@@ -47,30 +46,24 @@ onClientEnable(plugin){
 </h4>
 
 ```java
-// Server-side
-onServerEnable(plugin, listener((socket) -> {
-    onHandshake(socket, plugin, listener((messenger) -> {
-        messenger.write("MyChannel", "What is the answer to life?");
-        onMessage(messenger, plugin, "MyChannel", listener(
-          (messenger2, msg) -> {
-            String answer = (String) msg.get("data");
-            getLogger().info("The answer to life is "+answer);
-          }
-        ));
-    }));
-}));
+// On one side
+onSocketEnable(/*plugin*/ this, /*id*/ "default", (socket) -> {
+    onReady(socket, (connection) -> {
+        connection.msg(/*channel*/ "MyChannel", /*data*/ "What is the answer to life?");
+    });
+    onMessage(socket, /*channel*/ "MyChannel", (connection, msg) -> {
+        String answer = (String) msg.get("data");
+        getLogger().info("The answer to life is "+answer);
+     });
+});
 
-// Client-side
-onClientEnable(plugin, listener((socket) -> {
-    onMessage(socket, plugin, "MyChannel", listener(
-        (socket2, msg) -> {
-            String data = (String) msg.get("data");
-            if(data == null) return;
-            if(data.equals("What is the answer to life?"))
-                socket.write("MyChannel", "42");
-        }
-    ));
-}));
+// On other side
+onSocketEnable(/*plugin*/ this, /*id*/ "default", (socket) -> {
+    onMessage(socket, /*channel*/ "MyChannel", (connection, msg) -> {
+        if(msg.get("data").equals("What is the answer to life?"))
+        connection.msg(/*channel*/ "MyChannel", /*data*/ "42");
+    });
+});
 ```
 
 ### Advanced examples
@@ -88,7 +81,7 @@ onClientEnable(plugin, listener((socket) -> {
       }
 
       dependencies {
-          compileOnly("fr.rhaz.minecraft:sockets4mc:4.0.9")
+          compileOnly("fr.rhaz.minecraft:sockets4mc:5.0.1")
       }
 
 - Gradle: add this to your build.gradle
@@ -98,7 +91,7 @@ onClientEnable(plugin, listener((socket) -> {
       }
 
       dependencies {
-          compileOnly 'fr.rhaz.minecraft:sockets4mc:4.0.9'
+          compileOnly 'fr.rhaz.minecraft:sockets4mc:5.0.1'
       }
 
 
