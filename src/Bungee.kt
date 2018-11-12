@@ -74,7 +74,7 @@ open class Sockets4BungeePlugin: BungeePlugin() {
             val socket = MultiSocket(name, port, password, timeout, discovery)
             socket.apply {
                 sockets[id] = this
-                logger = {warning(it)}
+                logger = {name, ex -> warning("$name: ${ex.message}")}
                 connect(bootstrap)
                 accept(true)
             }
