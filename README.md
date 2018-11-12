@@ -12,7 +12,7 @@
 #### Tired of Plugin Messaging Channels?
 This API simply allows developers to send any data from a server to another, including BungeeCords
 
-This plugin uses [RHazSockets](https://github.com/RHazDev/RHazSockets)
+This plugin uses [Sockets.kt](https://github.com/RHazDev/Sockets.kt)
 
 ### Short examples
 
