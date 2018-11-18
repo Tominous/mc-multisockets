@@ -67,6 +67,7 @@ open class Sockets4BungeePlugin: BungeePlugin() {
         val enabled by boolean("enabled", true)
         val timeout by long("timeout", 1000)
         val discovery by boolean("discovery", true)
+        val debugEnabled by boolean("debug", false)
 
         fun mk(){
             enabled.not(false) ?: return
@@ -75,6 +76,7 @@ open class Sockets4BungeePlugin: BungeePlugin() {
             socket.apply {
                 sockets[id] = this
                 logger = {name, ex -> warning("$name: ${ex.message}")}
+                if(debugEnabled) debug = {name, msg -> info("$name: $msg")}
                 connect(bootstrap)
                 accept(true)
             }

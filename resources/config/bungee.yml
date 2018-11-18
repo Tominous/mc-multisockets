@@ -5,9 +5,7 @@ default:
   bootstrap:
     - localhost:25591
   # --- Extra options ---
-  #
-  # enabled: false
-  # if you want to disable this socket
-  #
-  # timeout: 1000
-  # delay between each message sending/reading
+  # enabled: false # if you want to disable this socket
+  # discovery: false # if you want to disable automatic connection to others sockets
+  # timeout: 100 # delay between each message sending/reading
+  # debug: true # if you want to show every message in the console
