@@ -81,7 +81,7 @@ onSocketEnable(/*plugin*/ this, /*id*/ "default", (socket) -> {
       }
 
       dependencies {
-          compileOnly("fr.rhaz.minecraft:sockets4mc:5.0.3")
+          compileOnly("fr.rhaz.minecraft:sockets4mc:5.0.4")
       }
 
 - Gradle: add this to your build.gradle
@@ -91,7 +91,7 @@ onSocketEnable(/*plugin*/ this, /*id*/ "default", (socket) -> {
       }
 
       dependencies {
-          compileOnly 'fr.rhaz.minecraft:sockets4mc:5.0.3'
+          compileOnly 'fr.rhaz.minecraft:sockets4mc:5.0.4'
       }
 
 
@@ -108,7 +108,7 @@ onSocketEnable(/*plugin*/ this, /*id*/ "default", (socket) -> {
         <dependency>
             <groupId>fr.rhaz.minecraft</groupId>
             <artifactId>sockets4mc</artifactId>
-            <version>5.0.3/version>
+            <version>5.0.4/version>
             <scope>provided</scope>
         </dependency>
       </dependencies>

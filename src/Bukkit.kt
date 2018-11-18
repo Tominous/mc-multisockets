@@ -1,14 +1,16 @@
 @file:JvmName("Sockets4Bukkit")
 package fr.rhaz.minecraft.sockets
 
-import fr.rhaz.minecraft.kotlin.*
-import fr.rhaz.minecraft.kotlin.bukkit.ConfigFile
-import fr.rhaz.minecraft.kotlin.bukkit.ConfigSection
+import fr.rhaz.minecraft.kotlin.bukkit.*
+import fr.rhaz.minecraft.kotlin.catch
+import fr.rhaz.minecraft.kotlin.not
 import fr.rhaz.sockets.MultiSocket
 import net.md_5.bungee.api.ChatColor.LIGHT_PURPLE
 import org.bukkit.Bukkit
 import java.util.function.BiConsumer
 import java.util.function.Consumer
+import kotlin.collections.map
+import kotlin.collections.set
 
 fun BukkitPlugin.onSocketEnable(
         listener: MultiSocket.(String) -> Unit

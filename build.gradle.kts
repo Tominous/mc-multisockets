@@ -12,7 +12,7 @@ plugins {
 }
 
 group = "fr.rhaz.minecraft"
-version = "5.0.3"
+version = "5.0.4"
 val pname = "Sockets4MC"
 val desc = "No more Plugin Messaging Channels"
 
@@ -25,7 +25,7 @@ repositories {
 }
 
 dependencies {
-    compileOnly("fr.rhaz.minecraft:kotlin4mc:2.0.11")
+    compileOnly("fr.rhaz.minecraft:kotlin4mc:2.1")
     compileOnly("net.md-5:bungeecord-api:1.13-SNAPSHOT")
     compileOnly("org.spigotmc:spigot-api:1.12.2-R0.1-SNAPSHOT")
     testCompileOnly(kotlin("stdlib-jdk8"))

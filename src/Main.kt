@@ -2,8 +2,8 @@
 @file:JvmMultifileClass
 package fr.rhaz.minecraft.sockets
 
-import fr.rhaz.minecraft.kotlin.BukkitEvent
-import fr.rhaz.minecraft.kotlin.BungeeEvent
+import fr.rhaz.minecraft.kotlin.bukkit.BukkitEvent
+import fr.rhaz.minecraft.kotlin.bungee.BungeeEvent
 import fr.rhaz.sockets.MultiSocket
 import org.bukkit.event.HandlerList
 

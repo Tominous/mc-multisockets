@@ -1,13 +1,15 @@
 @file:JvmName("Sockets4Bungee")
 package fr.rhaz.minecraft.sockets
 
-import fr.rhaz.minecraft.kotlin.*
-import fr.rhaz.minecraft.kotlin.bungee.ConfigFile
-import fr.rhaz.minecraft.kotlin.bungee.ConfigSection
+import fr.rhaz.minecraft.kotlin.bungee.*
+import fr.rhaz.minecraft.kotlin.catch
+import fr.rhaz.minecraft.kotlin.not
 import fr.rhaz.sockets.MultiSocket
 import net.md_5.bungee.api.ChatColor.LIGHT_PURPLE
 import java.util.function.BiConsumer
 import java.util.function.Consumer
+import kotlin.collections.map
+import kotlin.collections.set
 
 fun BungeePlugin.onSocketEnable(
         listener: MultiSocket.(String) -> Unit
