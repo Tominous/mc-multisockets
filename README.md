@@ -2,6 +2,12 @@
 
 **WebSockets multiplexing for Minecraft (Spigot & BungeeCord)**
 
+[**Download latest stable version**](https://jitpack.io/com/github/hazae41/mc-multisockets/master-SNAPSHOT/mc-multisockets-master-SNAPSHOT-bundle.jar)
+
+[**All versions**](https://github.com/hazae41/mc-multisockets/releases)
+
+[**Go to JitPack**](https://jitpack.io/#hazae41/mc-multisockets/6.0.0)
+
 By default, all routes are public and unencrypted
 
 But you can use AES to encrypt them and a password verification to restrict them
