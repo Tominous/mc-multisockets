@@ -1,0 +1,12 @@
+name: Sockets
+version: @version@
+main: hazae41.minecraft.sockets.bukkit.Plugin
+author: Hazae41
+
+commands:
+  sockets:
+    usage: /sockets
+    permission: sockets.list
+  socket:
+    usage: /socket <name> | /socket <name> key
+    permission: sockets.info

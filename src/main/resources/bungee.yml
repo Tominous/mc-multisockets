@@ -1,0 +1,4 @@
+name: Sockets
+version: @version@
+main: hazae41.minecraft.sockets.bungee.Plugin
+author: Hazae41

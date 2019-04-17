@@ -1,0 +1,5 @@
+sockets:
+  "bungee":
+    port: 25590
+    peers:
+    - "localhost:25590"
