@@ -15,6 +15,8 @@ import java.util.concurrent.TimeUnit
 class Plugin : BukkitPlugin() {
 
     override fun onEnable() {
+        update(15938)
+
         init(Config)
 
         SocketsConfig.config.keys.forEach {

@@ -14,6 +14,8 @@ import java.util.concurrent.TimeUnit.SECONDS
 class Plugin : BungeePlugin(){
 
     override fun onEnable() {
+        update(15938)
+
         init(Config)
 
         SocketsConfig.config.keys.forEach {
