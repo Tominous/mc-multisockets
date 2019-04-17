@@ -6,7 +6,7 @@
 
 [**All versions**](https://github.com/hazae41/mc-multisockets/releases)
 
-[**Go to JitPack**](https://jitpack.io/#hazae41/mc-multisockets/6.0.0)
+[**Go to JitPack**](https://jitpack.io/#hazae41/mc-multisockets/master-SNAPSHOT)
 
 By default, all routes are public and unencrypted
 
