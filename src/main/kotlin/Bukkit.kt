@@ -8,6 +8,7 @@ import hazae41.sockets.*
 import io.ktor.http.cio.websocket.send
 import net.md_5.bungee.api.chat.ClickEvent
 import java.util.concurrent.TimeUnit
+import javax.crypto.SecretKey
 
 class Plugin : BukkitPlugin() {
 
