@@ -4,9 +4,9 @@ import hazae41.sockets.Socket
 
 object Sockets {
     val sockets = mutableMapOf<String, Socket>()
-    val socketsNotifiers = mutableListOf<Socket.() -> Unit>()
+    val socketsNotifiers = mutableListOf<Socket.(String) -> Unit>()
 
-    fun onSocketEnable(block: Socket.() -> Unit){
+    fun onSocketEnable(block: Socket.(String) -> Unit){
         socketsNotifiers += block
     }
 }
