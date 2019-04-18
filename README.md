@@ -34,8 +34,8 @@ sockets:
 #### Usage
 
 ```kotlin
-// When your plugin is enabled
-override fun onEnable(){
+// When your plugin is loaded
+override fun onLoad(){
 
     // When any socket is started
     onSocketEnable { name ->
