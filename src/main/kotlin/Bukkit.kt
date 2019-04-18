@@ -49,7 +49,7 @@ class Plugin : BukkitPlugin() {
         }
 
         if(Config.test){
-           
+
             onSocketEnable {
                 onConversation("/test"){
                     val (encrypt) = aes()
