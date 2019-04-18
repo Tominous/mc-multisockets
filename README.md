@@ -4,6 +4,8 @@
 
 [**Download latest stable version**](https://jitpack.io/com/github/hazae41/mc-multisockets/master-SNAPSHOT/mc-multisockets-master-SNAPSHOT-bundle.jar)
 
+[**Download latest dev version**](https://jitpack.io/com/github/hazae41/mc-multisockets/dev-SNAPSHOT/mc-multisockets-dev-SNAPSHOT-bundle.jar)
+
 [**All versions**](https://github.com/hazae41/mc-multisockets/releases)
 
 [**Go to JitPack**](https://jitpack.io/#hazae41/mc-multisockets/master-SNAPSHOT)
