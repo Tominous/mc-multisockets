@@ -105,9 +105,8 @@ fun Plugin.start(config: Config.Socket) {
         config ->socket.connectTo(config.path, config.host, config.port)
     }
 
-    Sockets.socketsNotifiers.forEach { it(socket, config.path) }
-
     schedule(delay = 0, unit = TimeUnit.SECONDS) {
+        Sockets.socketsNotifiers.forEach { it(socket, config.path) }
         socket.start()
         info("Started ${config.path}")
     }
