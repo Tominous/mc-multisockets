@@ -25,7 +25,7 @@ repositories {
 
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
-    implementation 'com.github.hazae41:multisockets:dev-SNAPSHOT'
+    implementation 'com.github.hazae41:multisockets:master-SNAPSHOT'
 }
 
 compileKotlin {
