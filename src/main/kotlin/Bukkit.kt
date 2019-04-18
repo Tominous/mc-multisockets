@@ -88,8 +88,13 @@ object Config: ConfigFile("config"){
     }
 }
 
+fun String.aes(): SecretKey {
+    if(isBlank()) return AES.generate()
+    return AES.toKey(this)
+}
+
 fun Plugin.start(config: Config.Socket) {
-    val key = (config.key as String).aes()
+    val key = config.key.aes()
     if(config.key.isBlank()) config.key = AES.toString(key)
 
     val socket = Socket(config.port, key)
