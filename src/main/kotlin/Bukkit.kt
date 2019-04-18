@@ -89,7 +89,7 @@ object Config: ConfigFile("config"){
 }
 
 fun Plugin.start(config: Config.Socket) {
-    val key = config.key.aes()
+    val key = aes(config.key)
     if(config.key.isBlank()) config.key = AES.toString(key)
 
     val socket = Socket(config.port, key)
