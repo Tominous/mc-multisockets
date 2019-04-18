@@ -32,25 +32,37 @@ sockets:
 #### Usage
 
 ```kotlin
-// When any socket is started
-onSocketEnable { name ->
-    println("Enabled socket $name on port $port")
-    
-    // You must define all routes here
+// When your plugin is enabled
+override fun onEnable(){
 
-    // Create route to /MyPlugin/test
-    onConversation("/MyPlugin/test"){
-        // Send unencrypted message
-        send("it works!")
-        // Wait until a message is received
-        println(readMessage())
-        // Do it as many times as you want
-        send("it still works!")
-        println(readMessage())
+    // When any socket is started
+    onSocketEnable { name ->
+        println("Enabled socket $name on port $port")
+        
+        // You must define all routes here
+    
+        // Create route to /MyPlugin/test
+        onConversation("/MyPlugin/test"){
+            // Send unencrypted message
+            send("it works!")
+            // Wait until a message is received
+            println(readMessage())
+            // Do it as many times as you want
+            send("it still works!")
+            println(readMessage())
+        }
+        
+        hello("factions")
     }
+}
+
+fun Socket.hello(target: String){
+    // Get the connection to target
+    val connection = connections[target]
+    ?: return println("Unknown connection: $target")
     
     // Start a conversation to /MyPlugin/hello
-    conversation("/MyPlugin/hello") {
+    connection.conversation("/MyPlugin/hello") {
         // Use AES encryption
         val (encrypt, decrypt) = aes()
         // Send encrypted message
@@ -59,6 +71,10 @@ onSocketEnable { name ->
         println(readMessage().decrypt())
     }
     
+    connection.printFactions()
+}
+
+fun Connection.printFactions(){
     // Short function equivalent to conversation { readMessage() }
     request("/Factions/factions"){
         // Just print the first message received and close the conversation
