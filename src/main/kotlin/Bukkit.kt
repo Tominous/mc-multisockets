@@ -54,22 +54,16 @@ class Plugin : BukkitPlugin() {
         }
 
         if(Config.test){
-
+           
             onSocketEnable {
-
-                onConversation("/test") {
+                onConversation("/test"){
                     val (encrypt) = aes()
                     send("it works!".encrypt())
                 }
 
-                onConversation("/test/hello") {
-                    send("it works!")
-                }
-
-                onConnection(filter = "bungee") {
-                    conversation("/test/hello") {
-                        println(readMessage())
-                    }
+                onConversation("/test/hello"){
+                    println(readMessage())
+                    send("hello back from $name")
                 }
             }
         }
@@ -93,12 +87,12 @@ fun Plugin.start(config: SocketConfig): Socket {
     if(config.key.isBlank()) config.key = AES.toString(key)
 
     val socket = Socket(config.path, config.port, key)
+    socket.connectTo(config.peers)
     Sockets.socketsNotifiers.forEach { it(socket) }
 
     schedule(delay = 0, unit = TimeUnit.SECONDS) {
         socket.start()
         info("Started ${config.path}")
-        socket.connectTo(config.peers)
     }
 
     return socket
