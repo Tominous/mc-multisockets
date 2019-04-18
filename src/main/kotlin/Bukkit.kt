@@ -75,11 +75,17 @@ object Config: ConfigFile("config"){
 }
 
 object SocketsConfig: ConfigSection(Config, "sockets")
-
 class SocketConfig(name: String): ConfigSection(SocketsConfig, name){
     val port by int("port")
     var key by string("key")
-    val peers by stringList("peers")
+    val connections = ConnectionsConfig(this)
+}
+
+class ConnectionsConfig(config: SocketConfig): ConfigSection(config, "connections")
+class ConnectionConfig(config: ConnectionsConfig, name: String): ConfigSection(config, name){
+    val host by string("address")
+    val port by int("port")
+    val key by string("key")   
 }
 
 fun Plugin.start(config: SocketConfig): Socket {
