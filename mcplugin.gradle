@@ -1,3 +1,5 @@
+
+
 repositories {
     maven { url 'https://jitpack.io' }
 }
@@ -17,7 +19,7 @@ processResources.with copySpec {
 
 tasks.shadowJar {
     classifier = 'bundle'
-    //dependsOn tasks.relocateShadowJar
+    dependsOn tasks.relocateShadowJar
     dependsOn 'clean'
     mustRunAfter 'clean'
     destinationDir = file("$rootDir/jar")
