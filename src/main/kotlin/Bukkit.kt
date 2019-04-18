@@ -4,10 +4,7 @@ import hazae41.minecraft.kotlin.bukkit.*
 import hazae41.minecraft.kotlin.textOf
 import hazae41.minecraft.sockets.Sockets
 import hazae41.minecraft.sockets.Sockets.onSocketEnable
-import hazae41.sockets.AES
-import hazae41.sockets.Socket
-import hazae41.sockets.aes
-import hazae41.sockets.readMessage
+import hazae41.sockets.*
 import io.ktor.http.cio.websocket.send
 import net.md_5.bungee.api.chat.ClickEvent
 import java.util.concurrent.TimeUnit
@@ -19,9 +16,7 @@ class Plugin : BukkitPlugin() {
 
         init(Config)
 
-        SocketsConfig.config.keys.forEach {
-            Sockets.sockets[it] = start(SocketConfig(it))
-        }
+        Config.sockets.forEach { start(it) }
 
         command("sockets", permission = "sockets.list"){ args ->
             msg("Available sockets:")
@@ -54,22 +49,16 @@ class Plugin : BukkitPlugin() {
         }
 
         if(Config.test){
-
+           
             onSocketEnable {
-
-                onConversation("/test") {
+                onConversation("/test"){
                     val (encrypt) = aes()
                     send("it works!".encrypt())
                 }
 
-                onConversation("/test/hello") {
-                    send("it works!")
-                }
-
-                onConnection(filter = "bungee") {
-                    conversation("/test/hello") {
-                        println(readMessage())
-                    }
+                onConversation("/test/hello"){
+                    println(readMessage())
+                    send("hello back from $name")
                 }
             }
         }
@@ -78,28 +67,42 @@ class Plugin : BukkitPlugin() {
 
 object Config: ConfigFile("config"){
     val test by boolean("test")
+    val Sockets = ConfigSection(this, "sockets")
+    val sockets get() = Sockets.config.keys.map {
+            name -> Socket(Sockets, name)
+    }
+
+    class Socket(config: ConfigSection, name: String): ConfigSection(config, name){
+        val port by int("port")
+        var key by string("key")
+
+        val ConnectionsConfig = ConfigSection(this, "connections")
+        val connections get() = ConnectionsConfig.config.keys.map {
+                name -> Connection(ConnectionsConfig, name)
+        }
+
+        inner class Connection(config: ConfigSection, name: String): ConfigSection(config, name){
+            val host by string("host")
+            val port by int("port")
+        }
+    }
 }
 
-object SocketsConfig: ConfigSection(Config, "sockets")
-
-class SocketConfig(name: String): ConfigSection(SocketsConfig, name){
-    val port by int("port")
-    var key by string("key")
-    val peers by stringList("peers")
-}
-
-fun Plugin.start(config: SocketConfig): Socket {
+fun Plugin.start(config: Config.Socket) {
     val key = config.key.aes()
     if(config.key.isBlank()) config.key = AES.toString(key)
 
-    val socket = Socket(config.path, config.port, key)
-    Sockets.socketsNotifiers.forEach { it(socket) }
+    val socket = Socket(config.port, key)
+    Sockets.sockets[config.path] = socket
+
+    config.connections.forEach {
+        config ->socket.connectTo(config.path, config.host, config.port)
+    }
+
+    Sockets.socketsNotifiers.forEach { it(socket, config.path) }
 
     schedule(delay = 0, unit = TimeUnit.SECONDS) {
         socket.start()
         info("Started ${config.path}")
-        socket.connectTo(config.peers)
     }
-
-    return socket
 }
