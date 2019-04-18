@@ -49,35 +49,45 @@ class Plugin : BungeePlugin(){
             else {
                 msg("Available connections for $name:")
                 msg(socket.connections.keys.joinToString(", "))
+                msg("Use '/socket $name key' to see the secret key")
             }
         }
 
         if(Config.test){
             command("test"){ args ->
-                val (socket, name, path) = args
-                val key = SocketConfig(socket).key.aes()
-                val connection = sockets[socket]?.connections?.get(name) ?: return@command
-                connection.conversation("/$path"){
-                    val (_, decrypt) = aes(key)
+                val (socketName, connectionName) = args
+               
+                val socket = sockets[socketName]
+                ?: return@command msg("Unknown socket")
+
+                val connection = socket.connections[connectionName]
+                ?: return@command msg("Unknown connection")
+                            
+                connection.conversation("/test"){
+                    val (_, decrypt) = socket.aes()
                     println(readMessage().decrypt())
+                }
+            }
+            
+            command("hello"){ args ->
+                sockets.forEach{ socketName, socket -> 
+                    socket.connections.forEach{ connectionName, connection ->
+                        connection.conversation("/test/hello"){
+                            send("hello from $socketName")   
+                        }
+                    }
                 }
             }
 
             onSocketEnable {
-
                 onConversation("/test"){
                     val (encrypt) = aes()
                     send("it works!".encrypt())
                 }
 
                 onConversation("/test/hello"){
-                    send("it works!")
-                }
-
-                onConnection(filter = "bungee"){
-                    conversation("/test/hello"){
-                        println(readMessage())
-                    }
+                    println(readMessage())
+                    send("hello back from $name")
                 }
             }
         }
@@ -101,12 +111,12 @@ fun Plugin.start(config: SocketConfig): Socket {
     if(config.key.isBlank()) config.key = AES.toString(key)
 
     val socket = Socket(config.path, config.port, key)
+    socket.connectTo(config.peers)
     socketsNotifiers.forEach { it(socket) }
 
     schedule(delay = 0, unit = SECONDS) {
         socket.start()
         info("Started ${config.path}")
-        socket.connectTo(config.peers)
     }
 
     return socket
