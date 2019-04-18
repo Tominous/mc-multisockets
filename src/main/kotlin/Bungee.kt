@@ -11,6 +11,7 @@ import io.ktor.http.cio.websocket.send
 import net.md_5.bungee.api.chat.ClickEvent
 import net.md_5.bungee.api.chat.ClickEvent.Action.SUGGEST_COMMAND
 import java.util.concurrent.TimeUnit.SECONDS
+import javax.crypto.SecretKey
 
 class Plugin : BungeePlugin(){
 
@@ -115,6 +116,11 @@ object Config: ConfigFile("config"){
             val port by int("port")
         }
     }
+}
+
+fun String.aes(): SecretKey {
+    if(isBlank()) return AES.generate()
+    return AES.toKey(this)
 }
 
 fun Plugin.start(config: Config.Socket) {
