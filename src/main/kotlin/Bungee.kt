@@ -134,9 +134,8 @@ fun Plugin.start(config: Config.Socket) {
         config -> socket.connectTo(config.path, config.host, config.port)
     }
 
-    socketsNotifiers.forEach { it(socket, config.path) }
-
     schedule(delay = 0, unit = SECONDS) {
+        socketsNotifiers.forEach { it(socket, config.path) }
         socket.start()
         info("Started ${config.path}")
     }
